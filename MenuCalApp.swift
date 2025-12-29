@@ -9,22 +9,40 @@ import SwiftUI
 
 @main
 struct MenuCalApp: App {
-    var body: some Scene {
-        MenuBarExtra {
-            ContentView()
-        } label: {
-            // Use SF Symbols for a native look. The icon will represent the current date.
-            // This is a placeholder, we will make it dynamic later.
-            Image(systemName: "calendar")
-                .resizable()
-                .scaledToFill()
-        }
-        .menuBarExtraStyle(.window) // Use .window style for a popover interface
-    }
+  @State private var permViewModel = PermissionsViewModel()
+  @State private var appViewModel = AppViewModel()
+  @State private var eventsViewModel = EventsViewModel()
+
+  var body: some Scene {
+      MenuBarExtra {
+        AppView()
+          .environment(permViewModel)
+          .environment(appViewModel)
+          .environment(eventsViewModel)
+          .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight)
+          .onAppear {
+            appViewModel.onAppStart()
+            Task {
+              await eventsViewModel.refreshAll()
+            }
+            permViewModel.checkPermissions()
+            if (permViewModel.hasPermissions()) {
+            }
+          }
+      } label: {
+        Image(systemName: "calendar")
+          .font(.system(size: 24))
+      }
+      .menuBarExtraStyle(.window)
+  }
 }
 
 
 #Preview {
-    ContentView()
+  AppView()
+    .environment(PermsAllowedViewModel() as PermissionsViewModel)
+    .environment(AppViewModel())
+    .environment(EventsViewModel())
+    .frame(width: ViewConstants.appWidth, height: 700)
 }
 

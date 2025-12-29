@@ -7,15 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		07121EEF2ED49D2C00644F2A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07121EE32ED49D2B00644F2A /* ContentView.swift */; };
-		07121EF02ED49D2C00644F2A /* DayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07121EE42ED49D2B00644F2A /* DayView.swift */; };
-		07121EF12ED49D2C00644F2A /* MonthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07121EE52ED49D2B00644F2A /* MonthView.swift */; };
 		07121EF22ED49D2C00644F2A /* CalendarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07121EE72ED49D2B00644F2A /* CalendarViewModel.swift */; };
 		07121EF32ED49D2C00644F2A /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07121EE82ED49D2B00644F2A /* PermissionsView.swift */; };
 		07121EF42ED49D2C00644F2A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 07121EEB2ED49D2B00644F2A /* Assets.xcassets */; };
 		07121EF52ED49D2C00644F2A /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 07121EEC2ED49D2B00644F2A /* Info.plist */; };
 		07121EFD2ED49E5F00644F2A /* MenuCalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07121EFC2ED49E5F00644F2A /* MenuCalApp.swift */; };
-		074319122ED6260F00BA9FB4 /* EventDetailsPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074319112ED6260F00BA9FB4 /* EventDetailsPopover.swift */; };
+		0733B67B2EEEACB1007AFD2C /* PagedMonthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0733B67A2EEEACB1007AFD2C /* PagedMonthView.swift */; };
+		073EF1EE2EFB38F100BE2DA4 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 073EF1ED2EFB38F100BE2DA4 /* Extensions.swift */; };
+		07447BA22EF9B15900C05C80 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07447BA12EF9B15900C05C80 /* EventsView.swift */; };
 		074875702ED39A0F00867C1D /* ReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0748756F2ED39A0F00867C1D /* ReminderService.swift */; };
 		074875722ED39A1200867C1D /* AppleCalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875712ED39A1200867C1D /* AppleCalendarService.swift */; };
 		074875742ED39A1400867C1D /* AppleReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875732ED39A1400867C1D /* AppleReminderService.swift */; };
@@ -23,18 +22,28 @@
 		074875782ED39A2D00867C1D /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875772ED39A2D00867C1D /* Event.swift */; };
 		0748757A2ED39A2F00867C1D /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875792ED39A2E00867C1D /* Item.swift */; };
 		0748757C2ED39A3100867C1D /* Reminder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0748757B2ED39A3100867C1D /* Reminder.swift */; };
+		077414372EF53B8000018FE3 /* BottomToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077414362EF53B8000018FE3 /* BottomToolbar.swift */; };
+		07A7CEAC2ED77A4C009580D5 /* CurrentTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A7CEAB2ED77A46009580D5 /* CurrentTimeView.swift */; };
+		07A7CEAE2ED78344009580D5 /* DayBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A7CEAD2ED7830D009580D5 /* DayBackgroundView.swift */; };
+		07BB16032EF1C3FE00F3D2BB /* ViewConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07BB16022EF1C3FE00F3D2BB /* ViewConstants.swift */; };
+		07BB16052EF1CB4F00F3D2BB /* CalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07BB16042EF1CB4F00F3D2BB /* CalView.swift */; };
+		07ED3EA02EF5B59B00F684AA /* AppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07ED3E9F2EF5B59B00F684AA /* AppViewModel.swift */; };
+		07ED3EA22EF5B6A700F684AA /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07ED3EA12EF5B6A700F684AA /* AppView.swift */; };
+		07ED3EA42EF5C71500F684AA /* PermissionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07ED3EA32EF5C71500F684AA /* PermissionsViewModel.swift */; };
+		07ED3EA62EF5C7AA00F684AA /* EventsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07ED3EA52EF5C7AA00F684AA /* EventsViewModel.swift */; };
+		07ED3EAB2EF5DE2700F684AA /* ViewModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07ED3EAA2EF5DE2700F684AA /* ViewModifiers.swift */; };
+		07EED56A2EF5330A00538628 /* TopToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07EED5692EF5330A00538628 /* TopToolbar.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		07121EE32ED49D2B00644F2A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		07121EE42ED49D2B00644F2A /* DayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayView.swift; sourceTree = "<group>"; };
-		07121EE52ED49D2B00644F2A /* MonthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthView.swift; sourceTree = "<group>"; };
 		07121EE72ED49D2B00644F2A /* CalendarViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarViewModel.swift; sourceTree = "<group>"; };
 		07121EE82ED49D2B00644F2A /* PermissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsView.swift; sourceTree = "<group>"; };
 		07121EEB2ED49D2B00644F2A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		07121EEC2ED49D2B00644F2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		07121EFC2ED49E5F00644F2A /* MenuCalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuCalApp.swift; sourceTree = "<group>"; };
-		074319112ED6260F00BA9FB4 /* EventDetailsPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventDetailsPopover.swift; sourceTree = "<group>"; };
+		0733B67A2EEEACB1007AFD2C /* PagedMonthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagedMonthView.swift; sourceTree = "<group>"; };
+		073EF1ED2EFB38F100BE2DA4 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		07447BA12EF9B15900C05C80 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		074875382ED395AB00867C1D /* MenuCal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuCal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0748756F2ED39A0F00867C1D /* ReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderService.swift; sourceTree = "<group>"; };
 		074875712ED39A1200867C1D /* AppleCalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleCalendarService.swift; sourceTree = "<group>"; };
@@ -43,6 +52,17 @@
 		074875772ED39A2D00867C1D /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		074875792ED39A2E00867C1D /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		0748757B2ED39A3100867C1D /* Reminder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reminder.swift; sourceTree = "<group>"; };
+		077414362EF53B8000018FE3 /* BottomToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomToolbar.swift; sourceTree = "<group>"; };
+		07A7CEAB2ED77A46009580D5 /* CurrentTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTimeView.swift; sourceTree = "<group>"; };
+		07A7CEAD2ED7830D009580D5 /* DayBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayBackgroundView.swift; sourceTree = "<group>"; };
+		07BB16022EF1C3FE00F3D2BB /* ViewConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewConstants.swift; sourceTree = "<group>"; };
+		07BB16042EF1CB4F00F3D2BB /* CalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalView.swift; sourceTree = "<group>"; };
+		07ED3E9F2EF5B59B00F684AA /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
+		07ED3EA12EF5B6A700F684AA /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
+		07ED3EA32EF5C71500F684AA /* PermissionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsViewModel.swift; sourceTree = "<group>"; };
+		07ED3EA52EF5C7AA00F684AA /* EventsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsViewModel.swift; sourceTree = "<group>"; };
+		07ED3EAA2EF5DE2700F684AA /* ViewModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModifiers.swift; sourceTree = "<group>"; };
+		07EED5692EF5330A00538628 /* TopToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopToolbar.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +101,9 @@
 			isa = PBXGroup;
 			children = (
 				07121EE72ED49D2B00644F2A /* CalendarViewModel.swift */,
+				07ED3E9F2EF5B59B00F684AA /* AppViewModel.swift */,
+				07ED3EA32EF5C71500F684AA /* PermissionsViewModel.swift */,
+				07ED3EA52EF5C7AA00F684AA /* EventsViewModel.swift */,
 			);
 			path = viewmodel;
 			sourceTree = "<group>";
@@ -88,11 +111,17 @@
 		07121EFB2ED49D9F00644F2A /* views */ = {
 			isa = PBXGroup;
 			children = (
+				07ED3EA72EF5DDD600F684AA /* extensions */,
+				07A7CEAD2ED7830D009580D5 /* DayBackgroundView.swift */,
+				07A7CEAB2ED77A46009580D5 /* CurrentTimeView.swift */,
 				07121EE82ED49D2B00644F2A /* PermissionsView.swift */,
-				07121EE32ED49D2B00644F2A /* ContentView.swift */,
-				07121EE42ED49D2B00644F2A /* DayView.swift */,
-				074319112ED6260F00BA9FB4 /* EventDetailsPopover.swift */,
-				07121EE52ED49D2B00644F2A /* MonthView.swift */,
+				0733B67A2EEEACB1007AFD2C /* PagedMonthView.swift */,
+				07BB16022EF1C3FE00F3D2BB /* ViewConstants.swift */,
+				07BB16042EF1CB4F00F3D2BB /* CalView.swift */,
+				07447BA12EF9B15900C05C80 /* EventsView.swift */,
+				07EED5692EF5330A00538628 /* TopToolbar.swift */,
+				077414362EF53B8000018FE3 /* BottomToolbar.swift */,
+				07ED3EA12EF5B6A700F684AA /* AppView.swift */,
 			);
 			path = views;
 			sourceTree = "<group>";
@@ -103,6 +132,7 @@
 				07121EEB2ED49D2B00644F2A /* Assets.xcassets */,
 				07121EEC2ED49D2B00644F2A /* Info.plist */,
 				07121EFC2ED49E5F00644F2A /* MenuCalApp.swift */,
+				073EF1ED2EFB38F100BE2DA4 /* Extensions.swift */,
 				07121EFA2ED49D9100644F2A /* viewmodel */,
 				07121EFB2ED49D9F00644F2A /* views */,
 				07121EF82ED49D5300644F2A /* model */,
@@ -117,6 +147,14 @@
 				074875382ED395AB00867C1D /* MenuCal.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		07ED3EA72EF5DDD600F684AA /* extensions */ = {
+			isa = PBXGroup;
+			children = (
+				07ED3EAA2EF5DE2700F684AA /* ViewModifiers.swift */,
+			);
+			path = extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -149,7 +187,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2610;
-				LastUpgradeCheck = 2610;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					074875372ED395AB00867C1D = {
 						CreatedOnToolsVersion = 26.1.1;
@@ -193,19 +231,29 @@
 			buildActionMask = 2147483647;
 			files = (
 				074875742ED39A1400867C1D /* AppleReminderService.swift in Sources */,
+				07EED56A2EF5330A00538628 /* TopToolbar.swift in Sources */,
 				074875782ED39A2D00867C1D /* Event.swift in Sources */,
+				07BB16052EF1CB4F00F3D2BB /* CalView.swift in Sources */,
+				07ED3EA22EF5B6A700F684AA /* AppView.swift in Sources */,
+				07A7CEAE2ED78344009580D5 /* DayBackgroundView.swift in Sources */,
 				074875762ED39A1600867C1D /* CalendarService.swift in Sources */,
 				074875722ED39A1200867C1D /* AppleCalendarService.swift in Sources */,
+				07ED3EA42EF5C71500F684AA /* PermissionsViewModel.swift in Sources */,
 				074875702ED39A0F00867C1D /* ReminderService.swift in Sources */,
-				074319122ED6260F00BA9FB4 /* EventDetailsPopover.swift in Sources */,
-				07121EEF2ED49D2C00644F2A /* ContentView.swift in Sources */,
-				07121EF02ED49D2C00644F2A /* DayView.swift in Sources */,
-				07121EF12ED49D2C00644F2A /* MonthView.swift in Sources */,
+				07ED3EA02EF5B59B00F684AA /* AppViewModel.swift in Sources */,
+				07A7CEAC2ED77A4C009580D5 /* CurrentTimeView.swift in Sources */,
+				0733B67B2EEEACB1007AFD2C /* PagedMonthView.swift in Sources */,
+				07BB16032EF1C3FE00F3D2BB /* ViewConstants.swift in Sources */,
 				07121EF22ED49D2C00644F2A /* CalendarViewModel.swift in Sources */,
 				07121EF32ED49D2C00644F2A /* PermissionsView.swift in Sources */,
+				07ED3EA62EF5C7AA00F684AA /* EventsViewModel.swift in Sources */,
 				0748757C2ED39A3100867C1D /* Reminder.swift in Sources */,
 				0748757A2ED39A2F00867C1D /* Item.swift in Sources */,
+				07ED3EAB2EF5DE2700F684AA /* ViewModifiers.swift in Sources */,
+				077414372EF53B8000018FE3 /* BottomToolbar.swift in Sources */,
 				07121EFD2ED49E5F00644F2A /* MenuCalApp.swift in Sources */,
+				07447BA22EF9B15900C05C80 /* EventsView.swift in Sources */,
+				073EF1EE2EFB38F100BE2DA4 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,7 +294,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 46P7X325KP;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -270,6 +320,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -309,7 +360,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 46P7X325KP;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -326,6 +379,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -338,7 +392,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 46P7X325KP;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
@@ -381,7 +435,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 46P7X325KP;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;

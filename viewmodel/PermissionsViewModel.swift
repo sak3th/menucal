@@ -1,0 +1,52 @@
+//
+//  PermissionsViewMode.swift
+//  MenuCal
+//
+//  Created by Saketh Vejendla on 19/12/25.
+//
+
+import Foundation
+import EventKit
+
+
+@Observable
+class PermissionsViewModel: Identifiable {
+  var hasCalendarPermission: Bool = false
+  var hasReminderPermission: Bool = false
+
+  func hasPermissions() -> Bool {
+    hasCalendarPermission && hasReminderPermission
+  }
+
+  func checkPermissions() {
+    let calendarStatus = EKEventStore.authorizationStatus(for: .event)
+    let reminderStatus = EKEventStore.authorizationStatus(for: .reminder)
+
+    hasCalendarPermission = (calendarStatus == .fullAccess || calendarStatus == .writeOnly)
+    hasReminderPermission = (reminderStatus == .fullAccess || reminderStatus == .writeOnly)
+
+    print(
+      "Calendar permission status: \(calendarStatus.rawValue) (authorized: \(hasCalendarPermission))"
+    )
+    print(
+      "Reminder permission status: \(reminderStatus.rawValue) (authorized: \(hasReminderPermission))"
+    )
+  }
+}
+
+class PermsAllowedViewModel : PermissionsViewModel {
+  override init() {
+    super.init()
+    self.hasCalendarPermission = true
+    self.hasReminderPermission = true
+  }
+}
+
+class NoPermissionsViewModel : PermissionsViewModel {
+  override init() {
+    super.init()
+    self.hasCalendarPermission = false
+    self.hasReminderPermission = false
+  }
+}
+

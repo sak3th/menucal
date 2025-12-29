@@ -2,36 +2,54 @@ import Combine
 import EventKit
 import Foundation
 
+@available(*, deprecated, message: "Use AppViewModel and EventsViewModel instead")
 @MainActor
 class CalendarViewModel: ObservableObject {
+
   // Calendar and reminder permission state
   @Published var hasCalendarPermission: Bool = false
   @Published var hasReminderPermission: Bool = false
   @Published var errorMessage: String? = nil
 
-  // Published properties for event and reminder data
-  @Published var events: [Event] = []
-  @Published var reminders: [Reminder] = []
 
   // The currently selected date for day view, default today
   @Published var selectedDate: Date = Date()
 
-  // Track previous date for animation direction
+  // DEPRECATE - Track previous date for animation direction
   @Published var previousDate: Date? = nil
+
+  func changeSelectedDate(to newDate: Date) {
+    previousDate = selectedDate
+    selectedDate = newDate
+    Task {
+      await fetchData()
+    }
+  }
+
+
+  @Published var selectedEventsView: CalViewMode = CalViewMode.list
+  func selectEventsView(_ view: CalViewMode) {
+    self.selectedEventsView = view
+  }
+
+
+  // Published properties for event and reminder data
+  @Published var events: [Event] = []
+  @Published var reminders: [Reminder] = []
+
 
   private let eventStore = EKEventStore()
   private let calendarService: CalendarService = AppleCalendarService()
   private let reminderService: ReminderService = AppleReminderService()
 
-  // ... your init and other methods ...
 
   /// Requests permissions for both calendars and reminders, logging the results.
   func requestPermissions() async {
     // Request Calendar permission
     let calendarStatus = EKEventStore.authorizationStatus(for: .event)
-    if calendarStatus != .authorized {
+    if !(calendarStatus == .fullAccess || calendarStatus == .writeOnly) {
       do {
-        let granted = try await eventStore.requestAccess(to: .event)
+        let granted = try await eventStore.requestFullAccessToEvents()
         print("Calendar permission granted: \(granted)")
         if !granted {
           errorMessage = "User denied calendar permission."
@@ -45,9 +63,9 @@ class CalendarViewModel: ObservableObject {
 
     // Request Reminders permission
     let reminderStatus = EKEventStore.authorizationStatus(for: .reminder)
-    if reminderStatus != .authorized {
+    if !(reminderStatus == .fullAccess || reminderStatus == .writeOnly) {
       do {
-        let granted = try await eventStore.requestAccess(to: .reminder)
+        let granted = try await eventStore.requestFullAccessToReminders()
         print("Reminder permission granted: \(granted)")
         if !granted {
           errorMessage = "User denied reminder permission."
@@ -71,8 +89,8 @@ class CalendarViewModel: ObservableObject {
     let calendarStatus = EKEventStore.authorizationStatus(for: .event)
     let reminderStatus = EKEventStore.authorizationStatus(for: .reminder)
 
-    hasCalendarPermission = (calendarStatus == .authorized)
-    hasReminderPermission = (reminderStatus == .authorized)
+    hasCalendarPermission = (calendarStatus == .fullAccess || calendarStatus == .writeOnly)
+    hasReminderPermission = (reminderStatus == .fullAccess || reminderStatus == .writeOnly)
 
     print(
       "Calendar permission status: \(calendarStatus.rawValue) (authorized: \(hasCalendarPermission))"
@@ -86,7 +104,7 @@ class CalendarViewModel: ObservableObject {
   func fetchData() async {
     // Fetch events for the selected date
     do {
-      let events = try await calendarService.fetchEvents(for: selectedDate)
+      let events = try await calendarService.fetchEvents(for: selectedDate, hiddenCalendarIDs: [])
       self.events = events
     } catch {
       self.errorMessage = "Failed to fetch events: \(error.localizedDescription)"
@@ -103,14 +121,4 @@ class CalendarViewModel: ObservableObject {
     }
   }
 
-  /// Changes the selected date and fetches data for it.
-  func changeSelectedDate(to newDate: Date) {
-    previousDate = selectedDate
-    selectedDate = newDate
-    Task {
-      await fetchData()
-    }
-  }
-
-  // ... rest of your code ...
 }

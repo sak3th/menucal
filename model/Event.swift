@@ -5,6 +5,7 @@ import SwiftUI
 // It's Identifiable so SwiftUI can easily work with collections of events.
 struct Event: Identifiable {
   let id: String
+  let uuid = UUID()
   let title: String
   let startTime: Date
   let endTime: Date
@@ -78,6 +79,26 @@ struct Event: Identifiable {
     }
 
     return nil
+  }
+
+  // Helper to determine the meeting provider name
+  var meetingProvider: String {
+    guard let url = videoCallLink, let host = url.host?.lowercased() else { return "Video Call" }
+
+    if host.contains("zoom.us") { return "Zoom" }
+    if host.contains("meet.google.com") || host.contains("google.com") { return "Google Meet" }
+    if host.contains("teams.microsoft.com") { return "Microsoft Teams" }
+    if host.contains("webex.com") { return "Webex" }
+    if host.contains("gotomeeting.com") { return "GoToMeeting" }
+    if host.contains("bluejeans.com") { return "BlueJeans" }
+    if host.contains("whereby.com") { return "Whereby" }
+    if host.contains("skype.com") { return "Skype" }
+
+    return host
+  }
+  
+  var isUnaccepted: Bool {
+    return participationStatus == .pending || participationStatus == .tentative
   }
 }
 
