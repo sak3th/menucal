@@ -50,8 +50,8 @@ struct PagedMonthView: View {
                     prependPrevMonths(current: date)
                   }
                 }
-                .onScrollVisibilityChange(threshold: 1.0) {_ in
-                  if !isProgrammaticScroll {
+                .onScrollVisibilityChange(threshold: 0.9) { isVisible in
+                  if isVisible && !isProgrammaticScroll {
                     appVM.onMonthScrolled(date)
                   }
                 }
