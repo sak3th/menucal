@@ -174,7 +174,7 @@ struct DayEventView: View {
         .padding(4)
         .background(Circle().fill(event.calendarColor))
       
-      Text(event.title).fontWeight(.medium)
+      Text(event.title).fontWeight(.medium).singlelineText()
       Spacer()
       Text("all-day").fontWeight(.light).foregroundStyle(.secondary)
     }
@@ -219,7 +219,7 @@ struct EventView: View {
           Text(event.title)
             .font(.system(size: 13, weight: .medium))
             .strikethrough(isDeclined)
-            .lineLimit(1)
+            .singlelineText()
           Spacer()
           
           Text(event.startTime.formattedTime(timeSize: 13, amPmSize: 10))
@@ -238,6 +238,7 @@ struct EventView: View {
                   Image(systemName: "video")
                   Text(event.meetingProvider)
                     .strikethrough(isDeclined)
+                    .singlelineText()
                 }
               }
               .buttonStyle(.plain)
@@ -321,6 +322,7 @@ struct LocationButton: View {
         Image(systemName: "mappin.and.ellipse")
         Text(location)
           .strikethrough(isDeclined)
+          .singlelineText()
       }
     }
     .buttonStyle(.plain)
@@ -331,9 +333,11 @@ struct LocationButton: View {
   }
 }
 
-#Preview {
+#Preview("") {
   EventsView()
     .environment(PermsAllowedViewModel() as PermissionsViewModel)
     .environment(AppViewModel())
     .environment(EventsViewModel())
+    .padding(8)
+    .frame(width: ViewConstants.appWidth)
 }
