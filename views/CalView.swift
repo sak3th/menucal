@@ -17,10 +17,10 @@ struct CalView: View {
       ZStack(alignment: .bottomLeading) {
         VStack(alignment: .center, spacing: 0) {
           HStack {
-            Spacer()
+            //Spacer()
             PagedMonthView()
               .frame(width: ViewConstants.monthViewWidth)
-            Spacer()
+            //Spacer()
           }
           
           EventsView()

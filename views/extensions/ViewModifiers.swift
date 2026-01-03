@@ -19,6 +19,14 @@ struct SingleLineCenteredText: ViewModifier {
   }
 }
 
+struct SingleLineText: ViewModifier {
+  func body(content: Content) -> some View {
+    content
+      .lineLimit(1)
+      .truncationMode(.tail)
+  }
+}
+
 struct InteractiveButtonBackgroundModifier: ViewModifier {
   @State private var isHovered: Bool = false
   
@@ -68,9 +76,13 @@ extension View {
     self.modifier(InteractiveButtonBackgroundModifier(hoverBackgroundColor: color))
     //self.modifier(NativeInteractiveButtonBackgroundModifier())
   }
-
+  
   func singleLineCenteredText() -> some View {
     self.modifier(SingleLineCenteredText())
+  }
+
+  func singlelineText() -> some View {
+    self.modifier(SingleLineText())
   }
 }
 

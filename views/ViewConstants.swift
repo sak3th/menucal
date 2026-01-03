@@ -17,6 +17,7 @@ struct ViewConstants {
   static let weekNumCellWidth = 22.0
   static let dayCellWidth = 32.0
   static let dayCellHeight = 36.0
+  static let dayEventCapsuleMaxWidth = 16.0
   static let monthCellPadding = 4.0
 
   static var monthViewWidth: CGFloat {

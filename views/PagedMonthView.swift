@@ -322,7 +322,7 @@ struct DayCell: View {
       }
       .buttonStyle(.plain)
 
-      Capsule().frame(width: 22, height: 3).opacity(0.3)
+      DayEventsCapsule(date: date).opacity(0.5)
     }
   }
 }
