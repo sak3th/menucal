@@ -30,6 +30,7 @@ class AppViewModel: Identifiable {
     }
   }
 
+
   var selectedDate: Date
   var selectedMonth: Date
   var shouldScrollToSelection: Bool = false
@@ -40,6 +41,7 @@ class AppViewModel: Identifiable {
     selectedDate = todayStart
     selectedMonth = monthStart
     changeSource = .external
+    selectedEvent = nil
   }
 
   // MARK: - Intents
@@ -75,13 +77,48 @@ class AppViewModel: Identifiable {
   func selectDate(_ date: Date, source: ChangeSource = .external) {
     selectedDate = calendar.startOfDay(for: date)
     let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: selectedDate)) ?? selectedDate
-    
+
     changeSource = source
-    
+
     if !calendar.isDate(monthStart, inSameDayAs: selectedMonth) {
       selectedMonth = monthStart
     }
   }
+
+  // MARK: - Keyboard Navigation
+
+  func goToPrevDate() {
+    if let newDate = calendar.date(byAdding: .day, value: -1, to: selectedDate) {
+      selectDate(newDate, source: .external)
+    }
+  }
+
+  func goToNextDate() {
+    if let newDate = calendar.date(byAdding: .day, value: 1, to: selectedDate) {
+      selectDate(newDate, source: .external)
+    }
+  }
+
+  func goToPrevMonth() {
+    if let newMonth = calendar.date(byAdding: .month, value: -1, to: selectedMonth) {
+      onMonthScrolled(newMonth)
+      changeSource = .external
+    }
+  }
+
+  func goToNextMonth() {
+    if let newMonth = calendar.date(byAdding: .month, value: 1, to: selectedMonth) {
+      onMonthScrolled(newMonth)
+      changeSource = .external
+    }
+  }
+
+
+  var selectedEvent: Event?
+  func selectEvent(_ event: Event) {
+    selectedEvent = event
+  }
+
 }
 
 

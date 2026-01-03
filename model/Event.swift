@@ -129,7 +129,7 @@ enum ParticipationStatus: String, CaseIterable {
   var icon: String {
     switch self {
     case .accepted: return "checkmark.circle"
-    case .declined: return "xmark.circle."
+    case .declined: return "xmark.circle"
     case .tentative: return "questionmark.circle"
     case .pending: return "questionmark.circle"
     case .unknown: return "questionmark.circle"
@@ -193,3 +193,5 @@ enum RecurrenceFrequency: String, CaseIterable {
     }
   }
 }
+
+

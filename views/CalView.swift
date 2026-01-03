@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct CalView: View {
+  @Environment(AppViewModel.self) private var appVM
+  @FocusState private var isFocused: Bool
+
   var body: some View {
     ZStack(alignment: .topLeading) {
       Rectangle().fill(.background)
@@ -29,15 +32,56 @@ struct CalView: View {
         .frame(width: ViewConstants.appWidth)
         
         BottomToolbar()
-          .offset(y: -8)
+          .offset(y: -6)
       }
       TopBar()
+        .padding(.horizontal, 4)
         .offset(x: -4, y: 8)
+
+      if let event = appVM.selectedEvent {
+        ZStack(alignment: .topTrailing) {
+          ScrollView {
+            EventDetailView(event: event)
+              .padding()
+          }
+          .scrollIndicators(.hidden)
+          .background(.thinMaterial)
+          .onTapGesture {
+            appVM.selectedEvent = nil
+          }
+        }
+        .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight)
+        .transition(.opacity)
+        .zIndex(100)
+      }
     }
     .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight)
     .frame(maxHeight: ViewConstants.appHeight)
-    .background(.regularMaterial)
-    .focusable(false)
+    .focusable()
+    .focused($isFocused)
+    .onAppear {
+      isFocused = true
+    }
+    .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
+      if press.key == .leftArrow {
+        appVM.goToPrevDate()
+      } else if press.key == .rightArrow {
+        appVM.goToNextDate()
+      }
+      return .handled
+    }
+    .onKeyPress(keys: [",", ".", .upArrow, .downArrow]) { press in
+      if press.characters == "," || press.key == .upArrow {
+        appVM.goToPrevMonth()
+      } else if press.characters == "." || press.key == .downArrow {
+        appVM.goToNextMonth()
+      }
+      return .handled
+    }
+    .onKeyPress(keys: ["t"]) { _ in
+      appVM.onTodayClicked()
+      return .handled
+    }
   }
   
 }

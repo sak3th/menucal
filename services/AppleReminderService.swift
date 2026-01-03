@@ -13,10 +13,32 @@ class AppleReminderService: ReminderService {
         switch status {
         case .notDetermined:
             // The system will prompt the user for access.
-            let granted = try await eventStore.requestAccess(to: .reminder)
-            if !granted {
-                throw ReminderAccessError.denied
-            }
+            #if compiler(>=5.9)
+                if #available(iOS 17.0, macOS 14.0, watchOS 10.0, tvOS 17.0, *) {
+                    let granted = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Bool, Error>) in
+                        eventStore.requestFullAccessToReminders { granted, error in
+                            if let error = error {
+                                continuation.resume(throwing: error)
+                            } else {
+                                continuation.resume(returning: granted)
+                            }
+                        }
+                    }
+                    if !granted {
+                        throw ReminderAccessError.denied
+                    }
+                } else {
+                    let granted = try await eventStore.requestAccess(to: .reminder)
+                    if !granted {
+                        throw ReminderAccessError.denied
+                    }
+                }
+            #else
+                let granted = try await eventStore.requestAccess(to: .reminder)
+                if !granted {
+                    throw ReminderAccessError.denied
+                }
+            #endif
         case .restricted:
             throw ReminderAccessError.restricted
         case .denied:
@@ -24,6 +46,12 @@ class AppleReminderService: ReminderService {
         case .authorized:
             // Access already granted.
             break
+        case .fullAccess:
+          // Access already granted.
+          break
+        case .writeOnly:
+          // Access already granted.
+          break
         @unknown default:
             throw ReminderAccessError.unknown
         }

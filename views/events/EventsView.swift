@@ -162,6 +162,8 @@ struct SingleDayEventsView: View {
 }
 
 struct DayEventView: View {
+  @Environment(AppViewModel.self) private var appVM
+
   let event: Event
   
   var body: some View {
@@ -176,10 +178,16 @@ struct DayEventView: View {
       Spacer()
       Text("all-day").fontWeight(.light).foregroundStyle(.secondary)
     }
+    .contentShape(Rectangle()) // Make the whole row tappable
+    .onTapGesture {
+      appVM.selectedEvent = event
+    }
   }
 }
 
 struct EventView: View {
+  @Environment(AppViewModel.self) private var appVM
+
   let event: Event
   
   private var isDeclined: Bool {
@@ -265,6 +273,10 @@ struct EventView: View {
           .padding(.horizontal, -8)
           .padding(.vertical, -8)
       }
+    }
+    .contentShape(Rectangle()) // Make the whole row tappable
+    .onTapGesture {
+      appVM.selectedEvent = event
     }
   }
 }

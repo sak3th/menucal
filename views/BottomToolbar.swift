@@ -17,11 +17,11 @@ struct BottomToolbar: View {
         Button(action: {appVM.onTodayClicked()}) {
           Text("Today")
             .font(.body)
-            .padding(.vertical, 4)
-            .padding(.horizontal, 8)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
         }
         .interactiveButtonBackground()
-        .glassEffect(in: Capsule())
+        .glassEffect(.regular.interactive(), in: Capsule())
         .glassEffectTransition(.matchedGeometry)
       }
       
@@ -34,7 +34,7 @@ struct BottomToolbar: View {
           Button(action: { showingCalendarList = true }) {
             Image(systemName: "calendar")
               .font(.system(size: 14))
-              .padding(4)
+              .padding(6)
           }
           .interactiveButtonBackground()
           .popover(isPresented: $showingCalendarList) {
@@ -44,11 +44,11 @@ struct BottomToolbar: View {
           Button(action: {}) {
             Image(systemName: "tray")
               .font(.system(size: 14))
-              .padding(4)
+              .padding(6)
           }
           .interactiveButtonBackground()
         }
-        .padding(2)
+        .padding(4)
         .glassEffect(in: Capsule())
         .glassEffectTransition(.matchedGeometry)
       }
