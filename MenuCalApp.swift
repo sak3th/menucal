@@ -29,6 +29,7 @@ struct MenuCalApp: App {
             if (permViewModel.hasPermissions()) {
             }
           }
+          .background(.regularMaterial)
       } label: {
         Image(systemName: "calendar")
           .font(.system(size: 24))

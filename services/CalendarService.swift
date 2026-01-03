@@ -25,4 +25,7 @@ protocol CalendarService {
     
     /// Refreshes the underlying data sources (e.g. syncs with servers).
     func refreshData()
+
+    /// Responds to an event invitation.
+    func respondToEvent(id: String, status: ParticipationStatus) async throws
 }

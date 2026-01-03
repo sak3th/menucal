@@ -106,7 +106,7 @@ class AppleCalendarService: CalendarService {
       )
     }
   }
-  
+
   func fetchEvents(from startDate: Date, to endDate: Date, hiddenCalendarIDs: Set<String> = []) async throws -> [Event] {
     try await requestAccess()
     
@@ -137,7 +137,7 @@ class AppleCalendarService: CalendarService {
       )
     }
   }
-  
+
   func fetchCalendars() async throws -> [CalendarInfo] {
     try await requestAccess()
     let calendars = eventStore.calendars(for: .event)
@@ -155,6 +155,20 @@ class AppleCalendarService: CalendarService {
     eventStore.refreshSourcesIfNecessary()
   }
   
+  func respondToEvent(id: String, status: ParticipationStatus) async throws {
+    // NOTE: Public EventKit API does not allow changing participant status directly for the current user
+    // on received invitations in a straightforward way (properties are read-only).
+    // We open the specific event in Calendar.app so the user can respond there.
+    print("Attempting to respond to event \(id) with status \(status.rawValue)...")
+
+    // Open the specific event in Calendar.app using ical:// URL scheme
+    // Format: ical://ekevent/<eventIdentifier>?method=show&options=more
+    if let encodedId = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+       let url = URL(string: "ical://ekevent/\(encodedId)?method=show&options=more") {
+      NSWorkspace.shared.open(url)
+    }
+  }
+
   // MARK: - Helper Methods
   
   private func extractRecurrenceRule(from ekEvent: EKEvent) -> RecurrenceRule? {
@@ -259,10 +273,12 @@ class AppleCalendarService: CalendarService {
         return .unknown
       }
     }
-    
+
     // If there are no attendees or the user is the organizer, assume accepted
     return .accepted
   }
+
+
 }
 
 // Custom error for handling calendar access issues.

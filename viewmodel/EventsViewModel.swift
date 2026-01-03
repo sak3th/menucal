@@ -51,6 +51,15 @@ class EventsViewModel {
       hiddenCalendarIDs.insert(id)
     }
   }
+
+  func respondToEvent(event: Event, status: ParticipationStatus) async {
+    do {
+      try await calendarService.respondToEvent(id: event.id, status: status)
+      await refreshAll()
+    } catch {
+      print("Failed to respond to event: \(error)")
+    }
+  }
 }
 
 @Observable
