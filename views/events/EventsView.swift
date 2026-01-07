@@ -190,6 +190,9 @@ struct EventView: View {
 
   let event: Event
   
+  @State private var isHovering = false
+  @State private var isHoveringOnVideoLink = false
+  
   private var isDeclined: Bool {
     event.participationStatus == .declined
   }
@@ -243,9 +246,22 @@ struct EventView: View {
               }
               .buttonStyle(.plain)
               .onHover { inside in
+                isHoveringOnVideoLink = inside
                 if inside { NSCursor.pointingHand.push() }
                 else { NSCursor.pop() }
               }
+              .background(
+                Group {
+                  if isHoveringOnVideoLink {
+                    RoundedRectangle(cornerRadius: 4)
+                      .fill(Color.gray.opacity(0.15))
+                      .padding(.horizontal, -4)
+                      .padding(.vertical, -2)
+                  } else {
+                    Color.clear
+                  }
+                }
+              )
             } else if let location = event.location, !location.isEmpty {
               LocationButton(location: location, isDeclined: isDeclined)
             } else {
@@ -273,11 +289,25 @@ struct EventView: View {
           .clipShape(RoundedRectangle(cornerRadius: 8))
           .padding(.horizontal, -8)
           .padding(.vertical, -8)
+      } else {
+        Group {
+          if isHovering {
+            RoundedRectangle(cornerRadius: 4)
+              .fill(event.calendarColor.opacity(0.15))
+              .padding(.horizontal, -8)
+              .padding(.vertical, -8)
+          } else {
+            Color.clear
+          }
+        }
       }
     }
     .contentShape(Rectangle()) // Make the whole row tappable
     .onTapGesture {
       appVM.selectedEvent = event
+    }
+    .onHover() { inside in
+      isHovering = inside
     }
   }
 }
@@ -341,3 +371,4 @@ struct LocationButton: View {
     .padding(8)
     .frame(width: ViewConstants.appWidth)
 }
+
