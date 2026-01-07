@@ -112,6 +112,7 @@ private struct ParticipantRow: View {
         .font(.system(size: 12, weight: .light))
         .truncationMode(.tail)
         .offset(x: -4.0)
+        .singlelineText()
     } icon: {
       Image(systemName: iconName)
         .foregroundStyle(participant.participationStatus.color)
