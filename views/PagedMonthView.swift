@@ -167,6 +167,22 @@ struct Month: View {
       }
     }
 
+    // Pad to 6 weeks for consistent grid height across all months
+    while weekYearPairs.count < 6 {
+      guard let lastPair = weekYearPairs.last else { break }
+      var dc = DateComponents()
+      dc.yearForWeekOfYear = lastPair.year
+      dc.weekOfYear = lastPair.week
+      if let lastWeekDate = calendar.date(from: dc),
+         let nextWeekDate = calendar.date(byAdding: .weekOfYear, value: 1, to: lastWeekDate) {
+        let w = calendar.component(.weekOfYear, from: nextWeekDate)
+        let y = calendar.component(.yearForWeekOfYear, from: nextWeekDate)
+        weekYearPairs.append((week: w, year: y))
+      } else {
+        break
+      }
+    }
+
     return weekYearPairs
   }
 

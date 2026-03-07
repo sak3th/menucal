@@ -27,5 +27,6 @@ struct ViewConstants {
   static var appWidth: CGFloat {
     padding * 2 + monthViewWidth
   }
+
 }
 
