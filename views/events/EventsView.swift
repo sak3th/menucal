@@ -210,11 +210,9 @@ struct EventView: View {
   
   var body: some View {
     HStack(spacing: 8) {
-      if !isUnaccepted {
-        RoundedRectangle(cornerRadius: 10)
-          .frame(width: 3)
-          .foregroundColor(event.calendarColor)
-      }
+      RoundedRectangle(cornerRadius: 10)
+        .frame(width: 3)
+        .foregroundColor(event.calendarColor)
       
       VStack(alignment: .leading, spacing: 2) {
         // First Row: Title + Start Time
@@ -280,7 +278,7 @@ struct EventView: View {
         }
         .foregroundStyle(.secondary)
       }
-      .padding(.horizontal, isUnaccepted ? 8 : 0)
+      .padding(.horizontal, 0)
     }
     //.frame(height: 40) // Ensure consistent height approx 2 lines
     .background {

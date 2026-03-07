@@ -281,6 +281,12 @@ struct DayEventCard: View {
   let event: Event
   @Environment(AppViewModel.self) private var appVM
   @State private var isHovering = false
+  @State private var isHoveringOnVideoLink = false
+
+  @Environment(\.openURL) private var openURL
+
+  private var isDeclined: Bool { event.participationStatus == .declined }
+  private var isUnaccepted: Bool { event.isUnaccepted }
 
   var body: some View {
     GeometryReader { geometry in
@@ -289,8 +295,13 @@ struct DayEventCard: View {
 
       ZStack(alignment: .topLeading) {
         // Background
-        RoundedRectangle(cornerRadius: 4)
-          .fill(event.calendarColor.opacity(isHovering ? 0.3 : 0.2))
+        if isUnaccepted {
+          SlantedStripes(color: event.calendarColor.opacity(0.15))
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+        } else {
+          RoundedRectangle(cornerRadius: 4)
+            .fill(event.calendarColor.opacity(isHovering ? 0.3 : 0.2))
+        }
 
         HStack(alignment: .top, spacing: 0) {
           RoundedRectangle(cornerRadius: 8)
@@ -302,32 +313,68 @@ struct DayEventCard: View {
           VStack(alignment: .leading, spacing: 0) {
             Text(event.title)
               .font(.system(size: isSmall ? 10 : 11, weight: .medium))
+              .strikethrough(isDeclined)
               .lineLimit(1)
-              .foregroundColor(.primary)
+              .foregroundColor(isDeclined ? .secondary : .primary)
               .fixedSize(horizontal: false, vertical: true)
               .padding(.trailing, event.isRecurring ? 12 : 0) // Space for repeat icon
 
             if !isSmall && height > 34 {
               Spacer().frame(height: 1)
-              if let _ = event.videoCallLink {
-                HStack(spacing: 3) {
-                  Image(systemName: "video.fill")
-                  Text(event.meetingProvider)
+              if let url = event.videoCallLink {
+                Link(destination: url) {
+                  HStack(spacing: 3) {
+                    Image(systemName: "video.fill")
+                    Text(event.meetingProvider)
+                      .strikethrough(isDeclined)
+                  }
                 }
+                .buttonStyle(.plain)
                 .font(.system(size: 9))
                 .foregroundColor(.secondary)
-              } else if let location = event.location, !location.isEmpty {
-                HStack(spacing: 3) {
-                  Image(systemName: "mappin.circle.fill")
-                  Text(location)
+                .onHover { inside in
+                  isHoveringOnVideoLink = inside
+                  if inside { NSCursor.pointingHand.push() }
+                  else { NSCursor.pop() }
                 }
+                .background(
+                  Group {
+                    if isHoveringOnVideoLink {
+                      RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gray.opacity(0.15))
+                        .padding(.horizontal, -4)
+                        .padding(.vertical, -2)
+                    } else {
+                      Color.clear
+                    }
+                  }
+                )
+              } else if let location = event.location, !location.isEmpty {
+                Button(action: {
+                  if let encoded = location.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                     let url = URL(string: "http://maps.apple.com/?q=\(encoded)") {
+                    openURL(url)
+                  }
+                }) {
+                  HStack(spacing: 3) {
+                    Image(systemName: "mappin.and.ellipse")
+                    Text(location)
+                      .strikethrough(isDeclined)
+                  }
+                }
+                .buttonStyle(.plain)
                 .font(.system(size: 9))
                 .foregroundColor(.secondary)
                 .lineLimit(1)
+                .onHover { inside in
+                  if inside { NSCursor.pointingHand.push() }
+                  else { NSCursor.pop() }
+                }
               } else if height > 45 {
                  Text(formatTimeRange(start: event.startTime, end: event.endTime))
                     .font(.system(size: 9))
                     .foregroundColor(.secondary)
+                    .strikethrough(isDeclined)
               }
             }
           }
