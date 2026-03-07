@@ -23,6 +23,7 @@ struct CurrentTimeView: View {
       
       Text(time)
         .font(.caption2.weight(.medium))
+        .foregroundStyle(.white)
         .padding(.horizontal, 6)
         .padding(.vertical, 4)
       //.glassEffect()
