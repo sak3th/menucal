@@ -28,5 +28,6 @@ struct ViewConstants {
     padding * 2 + monthViewWidth
   }
 
+  static let timelineDividerHeight = 1.0
 }
 

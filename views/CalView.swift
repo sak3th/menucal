@@ -23,10 +23,16 @@ struct CalView: View {
             //Spacer()
           }
           
-          EventsView()
-            .frame(minHeight: ViewConstants.appHeight * 0.3)
-            .padding(.horizontal, ViewConstants.padding)
-            .scrollEdgeEffectStyle(.hard, for: .bottom)
+          Group {
+            if appVM.selectedEventsView == .timeline {
+              PagedDayTimelineView()
+            } else {
+              EventsView()
+            }
+          }
+          .frame(minHeight: ViewConstants.appHeight * 0.3)
+          .padding(.horizontal, ViewConstants.padding)
+          .scrollEdgeEffectStyle(.hard, for: .bottom)
         }
         .padding(.top, ViewConstants.padding)
         .frame(width: ViewConstants.appWidth)
