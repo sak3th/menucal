@@ -12,12 +12,22 @@ enum ChangeSource {
   case none, dayScroll, monthScroll, external
 }
 
+enum OverlayMode: Hashable {
+  case none, eventsMenu, search, calendarList
+}
+
 @Observable
 class AppViewModel: Identifiable {
 
   let calendar = Calendar.current
   
   var changeSource: ChangeSource = .none
+
+  var activeOverlay: OverlayMode = .none
+
+  func dismissOverlays() {
+    activeOverlay = .none
+  }
 
   var selectedEventsView: CalViewMode = .timeline
 

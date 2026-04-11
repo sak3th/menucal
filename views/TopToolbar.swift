@@ -10,28 +10,24 @@ import AppKit
 
 
 struct TopToolbar: View {
-  @State private var mode: ToolbarMode = .toolbar
-
-  enum ToolbarMode: Hashable {
-    case events, search, toolbar
-  }
+  @Environment(AppViewModel.self) private var appVM
 
   var body: some View {
     GlassEffectContainer {
-      switch mode {
-      case .events:
-        EventsMenu(onCollapse: { withAnimation(.spring) { mode = .toolbar } })
+      switch appVM.activeOverlay {
+      case .eventsMenu:
+        EventsMenu(onCollapse: { withAnimation(.spring) { appVM.activeOverlay = .none } })
           .glassEffect(in: RoundedRectangle(cornerRadius: 16.0))
           .glassEffectTransition(.matchedGeometry)
       case .search:
-        Search(onClose: { withAnimation(.spring) { mode = .toolbar } })
+        Search(onClose: { withAnimation(.spring) { appVM.activeOverlay = .none } })
           .padding(2)
           .glassEffect(in: Capsule())
           .glassEffectTransition(.matchedGeometry)
-      case .toolbar:
+      default:
         Toolbar(
-          onExpand: { withAnimation(.spring) { mode = .events } },
-          onSearch: { withAnimation(.spring) { mode = .search } }
+          onExpand: { withAnimation(.spring) { appVM.activeOverlay = .eventsMenu } },
+          onSearch: { withAnimation(.spring) { appVM.activeOverlay = .search } }
         )
         .padding(2)
         .glassEffect(in: Capsule())

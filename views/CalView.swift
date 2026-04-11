@@ -14,35 +14,46 @@ struct CalView: View {
   var body: some View {
     ZStack(alignment: .topLeading) {
       Rectangle().fill(.background)
-      ZStack(alignment: .bottomLeading) {
-        VStack(alignment: .center, spacing: 0) {
-          HStack {
-            //Spacer()
-            PagedMonthView()
-              .frame(width: ViewConstants.monthViewWidth)
-            //Spacer()
-          }
-          
-          Group {
-            if appVM.selectedEventsView == .timeline {
-              PagedDayTimelineView()
-            } else {
-              EventsView()
-            }
-          }
-          .frame(minHeight: ViewConstants.appHeight * 0.3)
-          .padding(.horizontal, ViewConstants.padding)
-          .scrollEdgeEffectStyle(.hard, for: .bottom)
+      VStack(alignment: .center, spacing: 0) {
+        HStack {
+          PagedMonthView()
+            .frame(width: ViewConstants.monthViewWidth)
         }
-        .padding(.top, ViewConstants.padding)
-        .frame(width: ViewConstants.appWidth)
-        
-        BottomToolbar()
-          .offset(y: -6)
+
+        Group {
+          if appVM.selectedEventsView == .timeline {
+            PagedDayTimelineView()
+          } else {
+            EventsView()
+          }
+        }
+        .frame(minHeight: ViewConstants.appHeight * 0.3)
+        .padding(.horizontal, ViewConstants.padding)
+        .scrollEdgeEffectStyle(.hard, for: .bottom)
       }
+      .padding(.top, ViewConstants.padding)
+      .frame(width: ViewConstants.appWidth)
+
+      // Dismiss overlay — catches taps outside menus
+      if appVM.activeOverlay != .none {
+        Color.clear
+          .contentShape(Rectangle())
+          .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight)
+          .onTapGesture {
+            withAnimation(.spring) { appVM.dismissOverlays() }
+          }
+          .zIndex(2)
+      }
+
+      BottomToolbar()
+        .padding(.bottom, 6)
+        .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight, alignment: .bottom)
+        .zIndex(3)
+
       TopBar()
         .padding(.horizontal, 4)
         .offset(x: -4, y: 8)
+        .zIndex(3)
 
       if let event = appVM.selectedEvent {
         ZStack(alignment: .topTrailing) {
@@ -51,7 +62,7 @@ struct CalView: View {
               .padding()
           }
           .scrollIndicators(.hidden)
-          .background(.thinMaterial)
+          .background(.background)
           .onTapGesture {
             appVM.selectedEvent = nil
           }
@@ -83,6 +94,17 @@ struct CalView: View {
         appVM.goToNextMonth()
       }
       return .handled
+    }
+    .onKeyPress(keys: [.escape]) { _ in
+      if appVM.activeOverlay != .none {
+        withAnimation(.spring) { appVM.dismissOverlays() }
+        return .handled
+      }
+      if appVM.selectedEvent != nil {
+        appVM.selectedEvent = nil
+        return .handled
+      }
+      return .ignored
     }
     .onKeyPress(keys: ["t"]) { _ in
       appVM.onTodayClicked()
