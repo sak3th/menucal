@@ -39,6 +39,7 @@ struct EventDetailView: View {
       ParticipationView(event: event)
     }
     
+    
   }
 }
 

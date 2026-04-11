@@ -17,6 +17,10 @@ struct PagedMonthView: View {
   private let loadBatchSize = 3
   private let currentMonth: Date
 
+  private var containerHeight: CGFloat {
+    ViewConstants.monthGridHeight(weekCount: Month.weekCount(for: appVM.selectedMonth))
+  }
+
   init() {
     let calendar = Calendar.current
     let now = Date()
@@ -36,7 +40,7 @@ struct PagedMonthView: View {
   var body: some View {
     VStack(alignment: .center, spacing: 0) {
       MonthHeader()
-      Spacer().frame(height: 16).border(.blue)
+      Spacer().frame(height: 16)
       ScrollViewReader { proxy in
         ScrollView(.horizontal) {
           LazyHStack(spacing: 0) {
@@ -55,14 +59,15 @@ struct PagedMonthView: View {
                     appVM.onMonthScrolled(date)
                   }
                 }
-                .frame(width: ViewConstants.monthViewWidth)
+                .frame(width: ViewConstants.monthViewWidth, alignment: .top)
             }
           }
-          .fixedSize(horizontal: false, vertical: true)
           .onAppear {
             proxy.scrollTo(appVM.selectedMonth, anchor: .center)
           }
         }
+        .frame(height: containerHeight)
+        .animation(.smooth(duration: 0.3), value: containerHeight)
         .scrollTargetLayout()
         .scrollTargetBehavior(.paging)
         .scrollIndicators(.never)
@@ -147,6 +152,24 @@ struct Month: View {
     self.startOfMonth = startOfMonth
   }
 
+  static func weekCount(for month: Date) -> Int {
+    let calendar = Calendar.current
+    let start = calendar.date(from: calendar.dateComponents([.year, .month], from: month))!
+    guard let range = calendar.range(of: .day, in: .month, for: start) else { return 5 }
+
+    var uniqueWeeks: [(Int, Int)] = []
+    for day in range {
+      if let d = calendar.date(byAdding: .day, value: day - 1, to: start) {
+        let w = calendar.component(.weekOfYear, from: d)
+        let y = calendar.component(.yearForWeekOfYear, from: d)
+        if uniqueWeeks.last?.0 != w || uniqueWeeks.last?.1 != y {
+          uniqueWeeks.append((w, y))
+        }
+      }
+    }
+    return uniqueWeeks.count
+  }
+
   private func getWeekNumbers() -> [(week: Int, year: Int)] {
     let calendar = Calendar.current
     guard let rangeOfDays = calendar.range(of: .day, in: .month, for: startOfMonth) else {
@@ -164,22 +187,6 @@ struct Month: View {
         if weekYearPairs.last?.week != week {
           weekYearPairs.append((week: week, year: year))
         }
-      }
-    }
-
-    // Pad to 6 weeks for consistent grid height across all months
-    while weekYearPairs.count < 6 {
-      guard let lastPair = weekYearPairs.last else { break }
-      var dc = DateComponents()
-      dc.yearForWeekOfYear = lastPair.year
-      dc.weekOfYear = lastPair.week
-      if let lastWeekDate = calendar.date(from: dc),
-         let nextWeekDate = calendar.date(byAdding: .weekOfYear, value: 1, to: lastWeekDate) {
-        let w = calendar.component(.weekOfYear, from: nextWeekDate)
-        let y = calendar.component(.yearForWeekOfYear, from: nextWeekDate)
-        weekYearPairs.append((week: w, year: y))
-      } else {
-        break
       }
     }
 
@@ -265,7 +272,7 @@ struct WeekdaysGridRow: View {
         ForEach(weekdaySymbols, id: \.self) { symbol in
           Text(symbol)
             .font(.system(size: 9, weight: .ultraLight))
-            .frame(width: ViewConstants.dayCellWidth)
+            .frame(width: ViewConstants.dayCellWidth, height: ViewConstants.weekdayRowHeight)
         }
       }
     }

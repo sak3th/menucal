@@ -19,6 +19,12 @@ struct ViewConstants {
   static let dayCellHeight = 36.0
   static let dayEventCapsuleMaxWidth = 16.0
   static let monthCellPadding = 4.0
+  static let gridVerticalSpacing: CGFloat = 4.0
+  static let weekdayRowHeight: CGFloat = 12.0
+
+  static func monthGridHeight(weekCount: Int) -> CGFloat {
+    weekdayRowHeight + CGFloat(weekCount) * dayCellHeight + CGFloat(weekCount) * gridVerticalSpacing
+  }
 
   static var monthViewWidth: CGFloat {
     return weekNumCellWidth + monthCellPadding + (dayCellWidth * 7) + (monthCellPadding * 7)

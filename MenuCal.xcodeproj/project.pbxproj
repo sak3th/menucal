@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		07121EF22ED49D2C00644F2A /* CalendarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07121EE72ED49D2B00644F2A /* CalendarViewModel.swift */; };
 		07121EF32ED49D2C00644F2A /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07121EE82ED49D2B00644F2A /* PermissionsView.swift */; };
 		07121EF42ED49D2C00644F2A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 07121EEB2ED49D2B00644F2A /* Assets.xcassets */; };
 		07121EF52ED49D2C00644F2A /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 07121EEC2ED49D2B00644F2A /* Info.plist */; };
@@ -30,7 +29,6 @@
 		074875742ED39A1400867C1D /* AppleReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875732ED39A1400867C1D /* AppleReminderService.swift */; };
 		074875762ED39A1600867C1D /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875752ED39A1600867C1D /* CalendarService.swift */; };
 		074875782ED39A2D00867C1D /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875772ED39A2D00867C1D /* Event.swift */; };
-		0748757A2ED39A2F00867C1D /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875792ED39A2E00867C1D /* Item.swift */; };
 		0748757C2ED39A3100867C1D /* Reminder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0748757B2ED39A3100867C1D /* Reminder.swift */; };
 		077414372EF53B8000018FE3 /* BottomToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077414362EF53B8000018FE3 /* BottomToolbar.swift */; };
 		0798AFA82F08FD2D00FF9225 /* DayEventsCapsule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0798AFA72F08FD2D00FF9225 /* DayEventsCapsule.swift */; };
@@ -49,7 +47,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		07121EE72ED49D2B00644F2A /* CalendarViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarViewModel.swift; sourceTree = "<group>"; };
 		07121EE82ED49D2B00644F2A /* PermissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsView.swift; sourceTree = "<group>"; };
 		07121EEB2ED49D2B00644F2A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		07121EEC2ED49D2B00644F2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -73,7 +70,6 @@
 		074875732ED39A1400867C1D /* AppleReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleReminderService.swift; sourceTree = "<group>"; };
 		074875752ED39A1600867C1D /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
 		074875772ED39A2D00867C1D /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
-		074875792ED39A2E00867C1D /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		0748757B2ED39A3100867C1D /* Reminder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reminder.swift; sourceTree = "<group>"; };
 		077414362EF53B8000018FE3 /* BottomToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomToolbar.swift; sourceTree = "<group>"; };
 		0798AFA72F08FD2D00FF9225 /* DayEventsCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayEventsCapsule.swift; sourceTree = "<group>"; };
@@ -106,7 +102,6 @@
 			isa = PBXGroup;
 			children = (
 				0748757B2ED39A3100867C1D /* Reminder.swift */,
-				074875792ED39A2E00867C1D /* Item.swift */,
 				074875772ED39A2D00867C1D /* Event.swift */,
 			);
 			path = model;
@@ -126,7 +121,6 @@
 		07121EFA2ED49D9100644F2A /* viewmodel */ = {
 			isa = PBXGroup;
 			children = (
-				07121EE72ED49D2B00644F2A /* CalendarViewModel.swift */,
 				07ED3E9F2EF5B59B00F684AA /* AppViewModel.swift */,
 				07ED3EA32EF5C71500F684AA /* PermissionsViewModel.swift */,
 				07ED3EA52EF5C7AA00F684AA /* EventsViewModel.swift */,
@@ -309,7 +303,6 @@
 				07A7CEAC2ED77A4C009580D5 /* CurrentTimeView.swift in Sources */,
 				0733B67B2EEEACB1007AFD2C /* PagedMonthView.swift in Sources */,
 				07BB16032EF1C3FE00F3D2BB /* ViewConstants.swift in Sources */,
-				07121EF22ED49D2C00644F2A /* CalendarViewModel.swift in Sources */,
 				07121EF32ED49D2C00644F2A /* PermissionsView.swift in Sources */,
 				073201122F083CA900C687CE /* NotesView.swift in Sources */,
 				073201132F083CA900C687CE /* EventTimeView.swift in Sources */,
@@ -320,7 +313,6 @@
 				073201182F083E3200C687CE /* ParticipantsView.swift in Sources */,
 				07ED3EA62EF5C7AA00F684AA /* EventsViewModel.swift in Sources */,
 				0748757C2ED39A3100867C1D /* Reminder.swift in Sources */,
-				0748757A2ED39A2F00867C1D /* Item.swift in Sources */,
 				07ED3EAB2EF5DE2700F684AA /* ViewModifiers.swift in Sources */,
 				073201062F080D1D00C687CE /* SampleEvent.swift in Sources */,
 				073201072F080D1D00C687CE /* ResponseButton.swift in Sources */,
