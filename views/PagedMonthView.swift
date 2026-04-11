@@ -43,7 +43,7 @@ struct PagedMonthView: View {
       Spacer().frame(height: 16)
       ScrollViewReader { proxy in
         ScrollView(.horizontal) {
-          LazyHStack(spacing: 0) {
+          LazyHStack(alignment: .top, spacing: 0) {
             ForEach(months, id: \.self) { date in
               Month(startOfMonth: date)
                 .id(date)
@@ -54,12 +54,12 @@ struct PagedMonthView: View {
                     prependPrevMonths(current: date)
                   }
                 }
-                .onScrollVisibilityChange(threshold: 0.9) { isVisible in
+                .onScrollVisibilityChange(threshold: 0.5) { isVisible in
                   if isVisible && !isProgrammaticScroll {
                     appVM.onMonthScrolled(date)
                   }
                 }
-                .frame(width: ViewConstants.monthViewWidth, alignment: .top)
+                .frame(width: ViewConstants.monthViewWidth)
             }
           }
           .onAppear {
