@@ -18,6 +18,7 @@ struct DayTimelineView: View {
   let date: Date
   @Binding var lastScrollHour: Int
   @Environment(AppViewModel.self) private var appVM
+  @Environment(EventsViewModel.self) private var eventsVM
   @State private var viewModel = DayEventsViewModel()
   @State private var currentTimeViewHeight: CGFloat = 0
   @State private var scrolledID: String?
@@ -104,7 +105,12 @@ struct DayTimelineView: View {
       }
     }
     .task(id: date) {
-      await viewModel.fetchEvents(for: date)
+      await viewModel.fetchEvents(for: date, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
+    }
+    .onChange(of: eventsVM.hiddenCalendarIDs) {
+      Task {
+        await viewModel.fetchEvents(for: date, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
+      }
     }
   }
 
