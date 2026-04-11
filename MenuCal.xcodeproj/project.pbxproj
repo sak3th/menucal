@@ -483,6 +483,7 @@
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "App needs access to Calendar to display events";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "App needs access to Reminders to display events";
@@ -526,6 +527,7 @@
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "App needs access to Calendar to display events";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "App needs access to Reminders to display events";
