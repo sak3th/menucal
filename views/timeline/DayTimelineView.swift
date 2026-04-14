@@ -7,23 +7,12 @@
 
 import SwiftUI
 
-struct ScrollOffsetKey: PreferenceKey {
-  static var defaultValue: CGFloat = 0
-  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-    value = nextValue()
-  }
-}
-
-struct DayTimelineView: View {
+struct DayTimelineContent: View {
   let date: Date
-  @Binding var lastScrollHour: Int
   @Environment(AppViewModel.self) private var appVM
   @Environment(EventsViewModel.self) private var eventsVM
   @State private var viewModel = DayEventsViewModel()
   @State private var currentTimeViewHeight: CGFloat = 0
-  @State private var scrolledID: String?
-  @State private var isScrollReady = false
-  @State private var hasPerformedInitialScroll = false
 
   // Layout Constants
   private let hourSpacing: CGFloat = 60
@@ -31,77 +20,45 @@ struct DayTimelineView: View {
   private let minVisualDuration: TimeInterval = 10 * 60 // 10 minutes minimum visual duration
   private let eventVerticalPadding: CGFloat = 1
 
-  // Scroll timing
-  private let initialScrollDelay: Double = 0.05
-  private let scrollSettleTime: Double = 0.15
-  private let animationPause: Double = 0.6
-  private let animationDuration: Double = 1.2
-  private var animationSettleDelay: Double { animationDuration + 0.1 }
-
   var body: some View {
-    ScrollViewReader { proxy in
-      ScrollView {
-        ZStack(alignment: .topLeading) {
-          // 1. Background Grid
-          DayTimelineGrid(hourSpacing: Int(hourSpacing))
-            .frame(maxWidth: .infinity)
-            .padding(.bottom, 20) // Bottom buffer
+    ZStack(alignment: .topLeading) {
+      // 1. Background Grid
+      DayTimelineGrid(hourSpacing: Int(hourSpacing))
+        .frame(maxWidth: .infinity)
+        .padding(.bottom, 20) // Bottom buffer
 
-          // 2. Events Layer
-          GeometryReader { geometry in
-            let totalWidth = geometry.size.width
-            let availableWidth = totalWidth - timeColumnWidth
+      // 2. Events Layer
+      GeometryReader { geometry in
+        let totalWidth = geometry.size.width
+        let availableWidth = totalWidth - timeColumnWidth
 
-            // Calculate Layout
-            let layoutFrames = calculateLayout(
-              events: viewModel.events,
-              availableWidth: availableWidth
-            )
+        // Calculate Layout
+        let layoutFrames = calculateLayout(
+          events: viewModel.events,
+          availableWidth: availableWidth
+        )
 
-            ForEach(viewModel.events) { event in
-              if let frame = layoutFrames[event.id] {
-                DayEventCard(event: event)
-                  .frame(width: frame.width, height: frame.height)
-                  .position(
-                    x: timeColumnWidth + frame.x + frame.width / 2 ,
-                    y: frame.y + frame.height / 2
-                  )
-                  .zIndex(frame.zIndex)
-              }
-            }
-          }
-          // The height of GeometryReader content needs to match the grid
-          .frame(height: (25 * ViewConstants.timelineDividerHeight) + (24 * hourSpacing))
-
-          // 3. Current Time Indicator
-          if Calendar.current.isDateInToday(date) {
-            TimelineView(.everyMinute) { context in
-              CurrentTimeIndicator(date: context.date, hourSpacing: hourSpacing, dividerHeight: ViewConstants.timelineDividerHeight, height: $currentTimeViewHeight)
-            }
-            .zIndex(1000) // Ensure on top of everything
+        ForEach(viewModel.events) { event in
+          if let frame = layoutFrames[event.id] {
+            DayEventCard(event: event)
+              .frame(width: frame.width, height: frame.height)
+              .position(
+                x: timeColumnWidth + frame.x + frame.width / 2 ,
+                y: frame.y + frame.height / 2
+              )
+              .zIndex(frame.zIndex)
           }
         }
-        .background(
-          GeometryReader { geo in
-            Color.clear.preference(key: ScrollOffsetKey.self,
-              value: -geo.frame(in: .named("timelineScroll")).origin.y)
-          }
-        )
       }
-      .coordinateSpace(name: "timelineScroll")
-      .scrollPosition(id: $scrolledID, anchor: .top)
-      .onPreferenceChange(ScrollOffsetKey.self) { offset in
-        guard isScrollReady else { return }
-        let hour = Int(offset / (hourSpacing + ViewConstants.timelineDividerHeight))
-        lastScrollHour = max(0, min(23, hour))
-      }
-      .onAppear {
-        guard appVM.selectedDate == date, !hasPerformedInitialScroll else { return }
-        performInitialScroll(proxy: proxy)
-      }
-      .onChange(of: appVM.selectedDate) { _, newDate in
-        guard newDate == date, !hasPerformedInitialScroll else { return }
-        performInitialScroll(proxy: proxy)
+      // The height of GeometryReader content needs to match the grid
+      .frame(height: (25 * ViewConstants.timelineDividerHeight) + (24 * hourSpacing))
+
+      // 3. Current Time Indicator
+      if Calendar.current.isDateInToday(date) {
+        TimelineView(.everyMinute) { context in
+          CurrentTimeIndicator(date: context.date, hourSpacing: hourSpacing, dividerHeight: ViewConstants.timelineDividerHeight, height: $currentTimeViewHeight)
+        }
+        .zIndex(1000) // Ensure on top of everything
       }
     }
     .task(id: date) {
@@ -110,33 +67,6 @@ struct DayTimelineView: View {
     .onChange(of: eventsVM.hiddenCalendarIDs) {
       Task {
         await viewModel.fetchEvents(for: date, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
-      }
-    }
-  }
-
-  private func performInitialScroll(proxy: ScrollViewProxy) {
-    hasPerformedInitialScroll = true
-    isScrollReady = false
-    let scrollTarget = lastScrollHour
-
-    // Use scrollPosition binding for immediate jump (reliable for buffer views)
-    scrolledID = "hour-\(scrollTarget)"
-
-    if Calendar.current.isDateInToday(date) {
-      let currentHour = max(0, Calendar.current.component(.hour, from: Date()) - 1)
-      DispatchQueue.main.asyncAfter(deadline: .now() + animationPause) {
-        // Use ScrollViewReader proxy for animated scroll (reliable for active view)
-        withAnimation(.easeInOut(duration: animationDuration)) {
-          proxy.scrollTo("hour-\(currentHour)", anchor: .top)
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + animationSettleDelay) {
-          lastScrollHour = currentHour
-          isScrollReady = true
-        }
-      }
-    } else {
-      DispatchQueue.main.asyncAfter(deadline: .now() + scrollSettleTime) {
-        isScrollReady = true
       }
     }
   }
@@ -449,55 +379,111 @@ struct PagedDayTimelineView: View {
 
   @State private var dates: [Date] = []
   @State private var scrollPosition: Date?
-  @State private var lastScrollHour: Int = 8
+  @State private var isInitialAppear = true
+  @State private var scrollToNowTask: Task<Void, Never>?
 
   private let calendar = Calendar.current
   private let loadBatchSize = 15
 
+  private let hourSpacing: CGFloat = 60
+  private let defaultScrollHour = 8
+  private var totalTimelineHeight: CGFloat {
+    (25 * ViewConstants.timelineDividerHeight) + (24 * hourSpacing) + 20
+  }
+
+  private func scrollHour(for date: Date) -> Int {
+    if calendar.isDateInToday(date) {
+      let hour = calendar.component(.hour, from: Date())
+      // Show 1 hour before current time so the indicator is visible, not at the very top
+      return max(0, min(23, hour - 1))
+    }
+    return defaultScrollHour
+  }
+
   var body: some View {
-    ScrollView(.horizontal) {
-      LazyHStack(spacing: 0) {
-        ForEach(dates, id: \.self) { date in
-          DayTimelineView(date: date, lastScrollHour: $lastScrollHour)
-            .frame(width: ViewConstants.monthViewWidth)
-            .id(date)
-        }
-      }
-      .scrollTargetLayout()
-    }
-    .scrollTargetBehavior(.paging)
-    .scrollIndicators(.never)
-    .scrollPosition(id: $scrollPosition)
-    .onAppear {
-      if dates.isEmpty {
-        dates = generateDays(around: appVM.selectedDate)
-        scrollPosition = appVM.selectedDate
-      } else {
-        scrollPosition = appVM.selectedDate
-      }
-    }
-    .onChange(of: scrollPosition) { _, newDate in
-      guard let date = newDate else { return }
+    ScrollViewReader { proxy in
+      ScrollView(.vertical) {
+        ZStack(alignment: .topLeading) {
+          // Invisible vertical anchors for ScrollViewReader
+          VStack(spacing: 0) {
+            ForEach(0..<25, id: \.self) { hour in
+              Color.clear
+                .frame(height: ViewConstants.timelineDividerHeight)
+                .id("hour-\(hour)")
+              if hour < 24 {
+                Spacer().frame(height: hourSpacing)
+              }
+            }
+          }
 
-      if appVM.selectedDate != date {
-        appVM.selectDate(date, source: .dayScroll)
+          // Horizontal paging content
+          ScrollView(.horizontal) {
+            LazyHStack(spacing: 0) {
+              ForEach(dates, id: \.self) { date in
+                DayTimelineContent(date: date)
+                  .frame(width: ViewConstants.monthViewWidth)
+                  .id(date)
+              }
+            }
+            .scrollTargetLayout()
+          }
+          .scrollTargetBehavior(.paging)
+          .scrollIndicators(.never)
+          .scrollPosition(id: $scrollPosition)
+          .frame(height: totalTimelineHeight)
+        }
       }
+      .scrollIndicators(.hidden)
+      .onAppear {
+        if dates.isEmpty {
+          dates = generateDays(around: appVM.selectedDate)
+          scrollPosition = appVM.selectedDate
+        } else {
+          scrollPosition = appVM.selectedDate
+        }
+        // Immediate scroll on first appear — no animation needed
+        proxy.scrollTo("hour-\(scrollHour(for: appVM.selectedDate))", anchor: .top)
+        Task { @MainActor in
+          try? await Task.sleep(for: .milliseconds(100))
+          isInitialAppear = false
+        }
+      }
+      .onChange(of: scrollPosition) { _, newDate in
+        guard let date = newDate else { return }
 
-      if let index = dates.firstIndex(of: date) {
-        if index < 5 {
-          prependDays(count: 10, before: dates.first!)
-        } else if index > dates.count - 5 {
-          appendDays(count: 10, after: dates.last!)
+        if appVM.selectedDate != date {
+          appVM.selectDate(date, source: .dayScroll)
+        }
+
+        // Orchestrated scroll to current time when landing on today
+        if !isInitialAppear && calendar.isDateInToday(date) {
+          scrollToNowTask?.cancel()
+          let delay: Duration = appVM.changeSource == .dayScroll ? .milliseconds(150) : .milliseconds(350)
+          scrollToNowTask = Task { @MainActor in
+            try? await Task.sleep(for: delay)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.4)) {
+              proxy.scrollTo("hour-\(scrollHour(for: date))", anchor: .top)
+            }
+          }
+        }
+
+        if let index = dates.firstIndex(of: date) {
+          if index < 5 {
+            prependDays(count: 10, before: dates.first!)
+          } else if index > dates.count - 5 {
+            appendDays(count: 10, after: dates.last!)
+          }
         }
       }
-    }
-    .onChange(of: appVM.selectedDate) { _, newDate in
-      if appVM.changeSource != .dayScroll {
-        if !dates.contains(newDate) {
-          dates = generateDays(around: newDate)
-        }
-        withAnimation {
-          scrollPosition = newDate
+      .onChange(of: appVM.selectedDate) { _, newDate in
+        if appVM.changeSource != .dayScroll {
+          if !dates.contains(newDate) {
+            dates = generateDays(around: newDate)
+          }
+          withAnimation {
+            scrollPosition = newDate
+          }
         }
       }
     }
@@ -535,7 +521,7 @@ struct PagedDayTimelineView: View {
 }
 
 #Preview {
-  DayTimelineView(date: Date(), lastScrollHour: .constant(8))
+  DayTimelineContent(date: Date())
     .environment(PermsAllowedViewModel() as PermissionsViewModel)
     .environment(AppViewModel())
     .environment(EventsViewModel())
