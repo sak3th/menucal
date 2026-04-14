@@ -26,8 +26,6 @@ struct MenuCalApp: App {
               await eventsViewModel.refreshAll()
             }
             permViewModel.checkPermissions()
-            if (permViewModel.hasPermissions()) {
-            }
           }
           .background(.regularMaterial)
       } label: {

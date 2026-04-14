@@ -1,0 +1,32 @@
+.PHONY: all build app dmg clean
+
+APP_NAME := MenuCal
+BUILD_DIR := build
+DIST_DIR := dist
+CONFIGURATION := Release
+
+all: dmg
+
+build:
+	xcodebuild -project $(APP_NAME).xcodeproj \
+		-scheme $(APP_NAME) \
+		-configuration $(CONFIGURATION) \
+		CONFIGURATION_BUILD_DIR=$(CURDIR)/$(BUILD_DIR) \
+		build
+
+app: build
+	@echo "Assembling $(APP_NAME).app..."
+	rm -rf $(DIST_DIR)/$(APP_NAME).app
+	mkdir -p $(DIST_DIR)
+	cp -R $(BUILD_DIR)/$(APP_NAME).app $(DIST_DIR)/$(APP_NAME).app
+	codesign --force --deep --sign - $(DIST_DIR)/$(APP_NAME).app
+	@echo "Done: $(DIST_DIR)/$(APP_NAME).app"
+
+dmg: app
+	@echo "Creating DMG..."
+	hdiutil create -volname $(APP_NAME) -srcfolder $(DIST_DIR)/$(APP_NAME).app -ov -format UDZO $(DIST_DIR)/$(APP_NAME).dmg
+	@echo "Done: $(DIST_DIR)/$(APP_NAME).dmg"
+
+clean:
+	rm -rf $(BUILD_DIR) $(DIST_DIR)
+	xcodebuild -project $(APP_NAME).xcodeproj -scheme $(APP_NAME) clean 2>/dev/null || true

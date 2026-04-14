@@ -1,15 +1,26 @@
 import SwiftUI
 
 struct PermissionsView: View {
+    @Environment(PermissionsViewModel.self) private var permissionsVM
 
     var body: some View {
       ContentUnavailableView {
         Label("Need permissions", systemImage: "calendar.badge.lock")
       } description: {
-        Text("Calendar and reminders will appear here.")
+        VStack(alignment: .leading, spacing: 4) {
+          Label(
+            "Calendar",
+            systemImage: permissionsVM.hasCalendarPermission ? "checkmark.circle.fill" : "circle"
+          )
+          Label(
+            "Reminders",
+            systemImage: permissionsVM.hasReminderPermission ? "checkmark.circle.fill" : "circle"
+          )
+        }
+        .font(.callout)
       } actions: {
-        Button("Request") {
-
+        Button("Grant Access") {
+          Task { await permissionsVM.requestPermissions() }
         }
         .glassEffect()
       }

@@ -80,17 +80,25 @@ struct CalView: View {
       isFocused = true
     }
     .onKeyPress(keys: [.leftArrow, .rightArrow]) { press in
-      if press.key == .leftArrow {
-        appVM.goToPrevDate()
-      } else if press.key == .rightArrow {
-        appVM.goToNextDate()
+      if press.modifiers.contains(.option) {
+        if press.key == .leftArrow {
+          appVM.goToPrevMonth()
+        } else if press.key == .rightArrow {
+          appVM.goToNextMonth()
+        }
+      } else {
+        if press.key == .leftArrow {
+          appVM.goToPrevDate()
+        } else if press.key == .rightArrow {
+          appVM.goToNextDate()
+        }
       }
       return .handled
     }
-    .onKeyPress(keys: [",", ".", .upArrow, .downArrow]) { press in
-      if press.characters == "," || press.key == .upArrow {
+    .onKeyPress(keys: [",", "."]) { press in
+      if press.characters == "," {
         appVM.goToPrevMonth()
-      } else if press.characters == "." || press.key == .downArrow {
+      } else if press.characters == "." {
         appVM.goToNextMonth()
       }
       return .handled
