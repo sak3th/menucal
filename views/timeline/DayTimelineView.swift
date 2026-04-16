@@ -435,14 +435,11 @@ struct PagedDayTimelineView: View {
       }
       .scrollIndicators(.hidden)
       .onAppear {
-        if dates.isEmpty {
-          dates = generateDays(around: appVM.selectedDate)
-          scrollPosition = appVM.selectedDate
-        } else {
-          scrollPosition = appVM.selectedDate
-        }
+        let targetDate = appVM.selectedDate
+        dates = generateDays(around: targetDate)
+        scrollPosition = targetDate
         // Immediate scroll on first appear — no animation needed
-        proxy.scrollTo("hour-\(scrollHour(for: appVM.selectedDate))", anchor: .top)
+        proxy.scrollTo("hour-\(scrollHour(for: targetDate))", anchor: .top)
         Task { @MainActor in
           try? await Task.sleep(for: .milliseconds(100))
           isInitialAppear = false
@@ -493,7 +490,7 @@ struct PagedDayTimelineView: View {
     var newItems: [Date] = []
     for i in 1...count {
       if let d = calendar.date(byAdding: .day, value: -i, to: date) {
-        newItems.insert(d, at: 0)
+        newItems.insert(calendar.startOfDay(for: d), at: 0)
       }
     }
     dates.insert(contentsOf: newItems, at: 0)
@@ -503,17 +500,18 @@ struct PagedDayTimelineView: View {
     var newItems: [Date] = []
     for i in 1...count {
       if let d = calendar.date(byAdding: .day, value: i, to: date) {
-        newItems.append(d)
+        newItems.append(calendar.startOfDay(for: d))
       }
     }
     dates.append(contentsOf: newItems)
   }
 
   private func generateDays(around date: Date) -> [Date] {
+    let baseDate = calendar.startOfDay(for: date)
     var newDates: [Date] = []
     for offset in -loadBatchSize...loadBatchSize {
-      if let d = calendar.date(byAdding: .day, value: offset, to: date) {
-        newDates.append(d)
+      if let d = calendar.date(byAdding: .day, value: offset, to: baseDate) {
+        newDates.append(calendar.startOfDay(for: d))
       }
     }
     return newDates

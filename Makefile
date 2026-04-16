@@ -24,7 +24,12 @@ app: build
 
 dmg: app
 	@echo "Creating DMG..."
-	hdiutil create -volname $(APP_NAME) -srcfolder $(DIST_DIR)/$(APP_NAME).app -ov -format UDZO $(DIST_DIR)/$(APP_NAME).dmg
+	rm -rf $(DIST_DIR)/dmg-stage
+	mkdir -p $(DIST_DIR)/dmg-stage
+	cp -R $(DIST_DIR)/$(APP_NAME).app $(DIST_DIR)/dmg-stage/
+	ln -s /Applications $(DIST_DIR)/dmg-stage/Applications
+	hdiutil create -volname $(APP_NAME) -srcfolder $(DIST_DIR)/dmg-stage -ov -format UDZO $(DIST_DIR)/$(APP_NAME).dmg
+	rm -rf $(DIST_DIR)/dmg-stage
 	@echo "Done: $(DIST_DIR)/$(APP_NAME).dmg"
 
 clean:
