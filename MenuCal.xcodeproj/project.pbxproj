@@ -22,6 +22,7 @@
 		073201162F083CA900C687CE /* EventTitleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0732010F2F083CA900C687CE /* EventTitleView.swift */; };
 		073201182F083E3200C687CE /* ParticipantsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 073201172F083E3200C687CE /* ParticipantsView.swift */; };
 		0733B67B2EEEACB1007AFD2C /* PagedMonthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0733B67A2EEEACB1007AFD2C /* PagedMonthView.swift */; };
+		0733B67D2EEEACB2007AFD2C /* PagedWeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0733B67C2EEEACB2007AFD2C /* PagedWeekView.swift */; };
 		073EF1EE2EFB38F100BE2DA4 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 073EF1ED2EFB38F100BE2DA4 /* Extensions.swift */; };
 		07447BA22EF9B15900C05C80 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07447BA12EF9B15900C05C80 /* EventsView.swift */; };
 		074875702ED39A0F00867C1D /* ReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0748756F2ED39A0F00867C1D /* ReminderService.swift */; };
@@ -63,6 +64,7 @@
 		073201112F083CA900C687CE /* VideoCallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCallView.swift; sourceTree = "<group>"; };
 		073201172F083E3200C687CE /* ParticipantsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParticipantsView.swift; sourceTree = "<group>"; };
 		0733B67A2EEEACB1007AFD2C /* PagedMonthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagedMonthView.swift; sourceTree = "<group>"; };
+		0733B67C2EEEACB2007AFD2C /* PagedWeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagedWeekView.swift; sourceTree = "<group>"; };
 		073EF1ED2EFB38F100BE2DA4 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		07447BA12EF9B15900C05C80 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		074875382ED395AB00867C1D /* MenuCal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuCal.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -139,6 +141,7 @@
 				07ED3EA72EF5DDD600F684AA /* extensions */,
 				07121EE82ED49D2B00644F2A /* PermissionsView.swift */,
 				0733B67A2EEEACB1007AFD2C /* PagedMonthView.swift */,
+				0733B67C2EEEACB2007AFD2C /* PagedWeekView.swift */,
 				07BB16022EF1C3FE00F3D2BB /* ViewConstants.swift */,
 				07BB16042EF1CB4F00F3D2BB /* CalView.swift */,
 				07EED5692EF5330A00538628 /* TopToolbar.swift */,
@@ -305,6 +308,7 @@
 				07ED3EA02EF5B59B00F684AA /* AppViewModel.swift in Sources */,
 				07A7CEAC2ED77A4C009580D5 /* CurrentTimeView.swift in Sources */,
 				0733B67B2EEEACB1007AFD2C /* PagedMonthView.swift in Sources */,
+				0733B67D2EEEACB2007AFD2C /* PagedWeekView.swift in Sources */,
 				07BB16032EF1C3FE00F3D2BB /* ViewConstants.swift in Sources */,
 				07121EF32ED49D2C00644F2A /* PermissionsView.swift in Sources */,
 				073201122F083CA900C687CE /* NotesView.swift in Sources */,

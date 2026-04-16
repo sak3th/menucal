@@ -19,15 +19,14 @@ struct TopToolbar: View {
         EventsMenu(onCollapse: { withAnimation(.spring) { appVM.activeOverlay = .none } })
           .glassEffect(in: RoundedRectangle(cornerRadius: 16.0))
           .glassEffectTransition(.matchedGeometry)
-      case .search:
-        Search(onClose: { withAnimation(.spring) { appVM.activeOverlay = .none } })
-          .padding(2)
-          .glassEffect(in: Capsule())
+      case .calendarViewMenu:
+        CalendarViewMenu(onCollapse: { withAnimation(.spring) { appVM.activeOverlay = .none } })
+          .glassEffect(in: RoundedRectangle(cornerRadius: 16.0))
           .glassEffectTransition(.matchedGeometry)
       default:
         Toolbar(
-          onExpand: { withAnimation(.spring) { appVM.activeOverlay = .eventsMenu } },
-          onSearch: { withAnimation(.spring) { appVM.activeOverlay = .search } }
+          onExpandEventsMenu: { withAnimation(.spring) { appVM.activeOverlay = .eventsMenu } },
+          onExpandCalendarViewMenu: { withAnimation(.spring) { appVM.activeOverlay = .calendarViewMenu } }
         )
         .padding(2)
         .glassEffect(in: Capsule())
@@ -86,60 +85,71 @@ struct EventsMenu: View {
 }
 
 
-struct Search: View {
-  var onClose: () -> Void
+struct CalendarViewMenu: View {
+  @Environment(AppViewModel.self) private var appVM
 
-  @State private var searchText: String = ""
-  @FocusState private var isFocused: Bool
+  var onCollapse: () -> Void
 
   var body: some View {
-    HStack(alignment: .center, spacing: 8) {
-      Image(systemName: "magnifyingglass")
-        .foregroundStyle(.secondary)
-        .font(.system(size: 14))
+    VStack(alignment: .leading, spacing: 0) {
+      Group {
+        Button(action: { selectCalendarView(.month) }) {
+          HStack(alignment: .center, spacing: 8) {
+            Image(systemName: "checkmark")
+              .font(.system(size: 8))
+              .opacity(appVM.selectedCalendarView == .month ? 1 : 0)
+            Image(systemName: "square").font(.system(size: 12))
+            Text("Month")
+            Spacer()
+          }
+          .padding(4)
+          .frame(maxWidth: ViewConstants.appWidth/2.2)
+        }
+        .interactiveButtonBackground()
 
-      TextField("Search", text: $searchText)
-        .textFieldStyle(.plain)
-        .focused($isFocused)
-        .frame(height: 20)
-        .padding(0)
-        .lineLimit(1)
-        .lineSpacing(0)
-        .offset(y: 0)
-
-      Button(action: onClose) {
-        Image(systemName: "xmark.circle.fill")
-          .foregroundStyle(.secondary)
-          .font(.system(size: 14))
+        Button(action: { selectCalendarView(.week) }) {
+          HStack(alignment: .center, spacing: 8) {
+            Image(systemName: "checkmark")
+              .font(.system(size: 8))
+              .opacity(appVM.selectedCalendarView == .week ? 1 : 0)
+            Image(systemName: "rectangle").font(.system(size: 12))
+            Text("Week")
+            Spacer()
+          }
+          .padding(4)
+          .frame(maxWidth: ViewConstants.appWidth/2.2)
+        }
+        .interactiveButtonBackground()
       }
-      .buttonStyle(.plain)
+      .padding(4)
     }
-    .padding(.vertical, 4)
-    .padding(.horizontal, 8)
-    .onAppear {
-      isFocused = true
-    }
+    .padding(2)
+  }
+
+  private func selectCalendarView(_ selection: CalendarViewMode) {
+    appVM.selectedCalendarView = selection
+    onCollapse()
   }
 }
 
 struct Toolbar: View {
   @Environment(AppViewModel.self) private var appVM
 
-  var onExpand: () -> Void
-  var onSearch: () -> Void
+  var onExpandEventsMenu: () -> Void
+  var onExpandCalendarViewMenu: () -> Void
 
   var body: some View {
     HStack(spacing: 4) {
       Group {
-        Button(action: onExpand) {
+        Button(action: onExpandEventsMenu) {
           Image(systemName: appVM.getEventsViewSymbol())
             .font(.system(size: 14))
             .padding(6)
         }
         .interactiveButtonBackground()
 
-        Button(action: onSearch) {
-          Image(systemName: "magnifyingglass")
+        Button(action: onExpandCalendarViewMenu) {
+          Image(systemName: appVM.getCalendarViewSymbol())
             .font(.system(size: 14))
             .padding(6)
         }
@@ -158,15 +168,6 @@ struct Toolbar: View {
   }
 }
 
-
-func getEventsViewSymbol(_ eventsView: CalViewMode) -> String {
-  return switch eventsView {
-  case .list:
-    "list.dash"
-  case .timeline:
-    "calendar.day.timeline.left"
-  }
-}
 
 #Preview {
   TopToolbar()

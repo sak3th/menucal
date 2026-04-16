@@ -16,9 +16,13 @@ struct CalView: View {
       Rectangle().fill(.background)
       VStack(alignment: .center, spacing: 0) {
         HStack {
-          PagedMonthView()
-            .frame(width: ViewConstants.monthViewWidth)
+          if appVM.selectedCalendarView == .month {
+            PagedMonthView()
+          } else {
+            PagedWeekView()
+          }
         }
+        .frame(width: ViewConstants.monthViewWidth)
 
         Group {
           if appVM.selectedEventsView == .timeline {
@@ -96,10 +100,18 @@ struct CalView: View {
       return .handled
     }
     .onKeyPress(keys: [",", "."]) { press in
-      if press.characters == "," {
-        appVM.goToPrevMonth()
-      } else if press.characters == "." {
-        appVM.goToNextMonth()
+      if appVM.selectedCalendarView == .week {
+        if press.characters == "," {
+          appVM.goToPrevWeek()
+        } else if press.characters == "." {
+          appVM.goToNextWeek()
+        }
+      } else {
+        if press.characters == "," {
+          appVM.goToPrevMonth()
+        } else if press.characters == "." {
+          appVM.goToNextMonth()
+        }
       }
       return .handled
     }
@@ -116,6 +128,14 @@ struct CalView: View {
     }
     .onKeyPress(keys: ["t"]) { _ in
       appVM.onTodayClicked()
+      return .handled
+    }
+    .onKeyPress(keys: ["m"]) { _ in
+      appVM.toggleCalendarView()
+      return .handled
+    }
+    .onKeyPress(keys: ["e"]) { _ in
+      appVM.toggleEventsView()
       return .handled
     }
   }

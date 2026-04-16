@@ -34,6 +34,8 @@ struct ViewConstants {
     padding * 2 + monthViewWidth
   }
 
+  static let weekViewHeight: CGFloat = weekdayRowHeight + dayCellHeight + gridVerticalSpacing
+
   static let timelineDividerHeight = 1.0
 }
 

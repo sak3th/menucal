@@ -9,11 +9,15 @@ import Foundation
 import EventKit
 
 enum ChangeSource {
-  case none, dayScroll, monthScroll, external
+  case none, dayScroll, monthScroll, weekScroll, external
 }
 
 enum OverlayMode: Hashable {
-  case none, eventsMenu, search, calendarList
+  case none, eventsMenu, calendarViewMenu, calendarList
+}
+
+enum CalendarViewMode: Hashable {
+  case month, week
 }
 
 @Observable
@@ -30,6 +34,7 @@ class AppViewModel: Identifiable {
   }
 
   var selectedEventsView: CalViewMode = .timeline
+  var selectedCalendarView: CalendarViewMode = .month
 
   func getEventsViewSymbol() -> String {
     switch selectedEventsView {
@@ -38,6 +43,23 @@ class AppViewModel: Identifiable {
     case .list:
       return "list.dash"
     }
+  }
+
+  func getCalendarViewSymbol() -> String {
+    switch selectedCalendarView {
+    case .month:
+      return "square"
+    case .week:
+      return "rectangle"
+    }
+  }
+
+  func toggleCalendarView() {
+    selectedCalendarView = selectedCalendarView == .month ? .week : .month
+  }
+
+  func toggleEventsView() {
+    selectedEventsView = selectedEventsView == .timeline ? .list : .timeline
   }
 
 
@@ -121,6 +143,49 @@ class AppViewModel: Identifiable {
       onMonthScrolled(newMonth)
       changeSource = .external
     }
+  }
+
+  func goToPrevWeek() {
+    if let startOfWeek = startOfWeek(for: selectedDate),
+       let prevWeekStart = calendar.date(byAdding: .weekOfYear, value: -1, to: startOfWeek) {
+      onWeekScrolled(prevWeekStart)
+      changeSource = .external
+    }
+  }
+
+  func goToNextWeek() {
+    if let startOfWeek = startOfWeek(for: selectedDate),
+       let nextWeekStart = calendar.date(byAdding: .weekOfYear, value: 1, to: startOfWeek) {
+      onWeekScrolled(nextWeekStart)
+      changeSource = .external
+    }
+  }
+
+  func onWeekScrolled(_ date: Date) {
+    let now = Date()
+    // If scrolled to the current week, select today
+    if calendar.isDate(date, equalTo: now, toGranularity: .weekOfYear) &&
+       calendar.isDate(date, equalTo: now, toGranularity: .yearForWeekOfYear) {
+      selectedDate = calendar.startOfDay(for: now)
+    } else {
+      // Select the start of that week
+      if let weekStart = startOfWeek(for: date) {
+        selectedDate = weekStart
+      } else {
+        selectedDate = calendar.startOfDay(for: date)
+      }
+    }
+
+    let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: selectedDate)) ?? selectedDate
+    if !calendar.isDate(monthStart, inSameDayAs: selectedMonth) {
+      selectedMonth = monthStart
+    }
+    changeSource = .weekScroll
+  }
+
+  private func startOfWeek(for date: Date) -> Date? {
+    let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+    return calendar.date(from: components)
   }
 
 
