@@ -7,6 +7,7 @@
 
 import Foundation
 import EventKit
+import AppKit
 
 
 @MainActor
@@ -14,6 +15,15 @@ import EventKit
 class PermissionsViewModel: Identifiable {
   var hasCalendarPermission: Bool = false
   var hasReminderPermission: Bool = false
+  var isRequestingPermissions: Bool = false
+
+  private var calendarStatus: EKAuthorizationStatus = .notDetermined
+  private var reminderStatus: EKAuthorizationStatus = .notDetermined
+
+  var canRequestCalendar: Bool { calendarStatus == .notDetermined }
+  var canRequestReminder: Bool { reminderStatus == .notDetermined }
+  var hasUngrantedRequestable: Bool { (!hasCalendarPermission && canRequestCalendar) || (!hasReminderPermission && canRequestReminder) }
+  var allDenied: Bool { !hasPermissions() && !hasUngrantedRequestable }
 
   init() {
     checkPermissions()
@@ -33,29 +43,38 @@ class PermissionsViewModel: Identifiable {
   }
 
   func checkPermissions() {
-    let calendarStatus = EKEventStore.authorizationStatus(for: .event)
-    let reminderStatus = EKEventStore.authorizationStatus(for: .reminder)
+    calendarStatus = EKEventStore.authorizationStatus(for: .event)
+    reminderStatus = EKEventStore.authorizationStatus(for: .reminder)
 
     hasCalendarPermission = (calendarStatus == .fullAccess || calendarStatus == .writeOnly)
     hasReminderPermission = (reminderStatus == .fullAccess || reminderStatus == .writeOnly)
-
-    print(
-      "Calendar permission status: \(calendarStatus.rawValue) (authorized: \(hasCalendarPermission))"
-    )
-    print(
-      "Reminder permission status: \(reminderStatus.rawValue) (authorized: \(hasReminderPermission))"
-    )
   }
 
   func requestPermissions() async {
+    isRequestingPermissions = true
     let store = EKEventStore()
-    if !hasCalendarPermission {
+
+    if !hasCalendarPermission && canRequestCalendar {
       hasCalendarPermission = (try? await store.requestFullAccessToEvents()) ?? false
     }
-    if !hasReminderPermission {
+    if !hasReminderPermission && canRequestReminder {
       hasReminderPermission = (try? await store.requestFullAccessToReminders()) ?? false
     }
-    checkPermissions()
+
+    // Poll a few times to catch delayed system propagation
+    for _ in 0..<5 {
+      checkPermissions()
+      if hasPermissions() { break }
+      try? await Task.sleep(for: .milliseconds(500))
+    }
+
+    isRequestingPermissions = false
+  }
+
+  func openSystemSettings() {
+    if let url = URL(string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Calendars") {
+      NSWorkspace.shared.open(url)
+    }
   }
 }
 
@@ -76,4 +95,3 @@ class NoPermissionsViewModel : PermissionsViewModel {
     self.hasReminderPermission = false
   }
 }
-

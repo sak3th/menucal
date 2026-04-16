@@ -22,10 +22,22 @@ struct MenuCalApp: App {
           .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight)
           .onAppear {
             appViewModel.onAppStart()
-            Task {
-              await eventsViewModel.refreshAll()
-            }
             permViewModel.checkPermissions()
+            if permViewModel.hasPermissions() {
+              Task {
+                await eventsViewModel.refreshAll()
+              }
+            }
+          }
+          .onChange(of: permViewModel.hasCalendarPermission) {
+            if permViewModel.hasPermissions() {
+              Task { await eventsViewModel.refreshAll() }
+            }
+          }
+          .onChange(of: permViewModel.hasReminderPermission) {
+            if permViewModel.hasPermissions() {
+              Task { await eventsViewModel.refreshAll() }
+            }
           }
           .background(.regularMaterial)
       } label: {

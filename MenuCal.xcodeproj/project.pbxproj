@@ -31,6 +31,7 @@
 		074875782ED39A2D00867C1D /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875772ED39A2D00867C1D /* Event.swift */; };
 		0748757C2ED39A3100867C1D /* Reminder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0748757B2ED39A3100867C1D /* Reminder.swift */; };
 		077414372EF53B8000018FE3 /* BottomToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077414362EF53B8000018FE3 /* BottomToolbar.swift */; };
+		0776C2172F9124B500DB6E54 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 0776C2162F9124B500DB6E54 /* Makefile */; };
 		0798AFA82F08FD2D00FF9225 /* DayEventsCapsule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0798AFA72F08FD2D00FF9225 /* DayEventsCapsule.swift */; };
 		07A7CEAC2ED77A4C009580D5 /* CurrentTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A7CEAB2ED77A46009580D5 /* CurrentTimeView.swift */; };
 		07A7CEAE2ED78344009580D5 /* DayBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A7CEAD2ED7830D009580D5 /* DayBackgroundView.swift */; };
@@ -72,6 +73,7 @@
 		074875772ED39A2D00867C1D /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		0748757B2ED39A3100867C1D /* Reminder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reminder.swift; sourceTree = "<group>"; };
 		077414362EF53B8000018FE3 /* BottomToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomToolbar.swift; sourceTree = "<group>"; };
+		0776C2162F9124B500DB6E54 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		0798AFA72F08FD2D00FF9225 /* DayEventsCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayEventsCapsule.swift; sourceTree = "<group>"; };
 		07A7CEAB2ED77A46009580D5 /* CurrentTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentTimeView.swift; sourceTree = "<group>"; };
 		07A7CEAD2ED7830D009580D5 /* DayBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayBackgroundView.swift; sourceTree = "<group>"; };
@@ -149,6 +151,7 @@
 		0748752F2ED395AB00867C1D = {
 			isa = PBXGroup;
 			children = (
+				0776C2162F9124B500DB6E54 /* Makefile */,
 				07121EEB2ED49D2B00644F2A /* Assets.xcassets */,
 				07121EEC2ED49D2B00644F2A /* Info.plist */,
 				07121EFC2ED49E5F00644F2A /* MenuCalApp.swift */,
@@ -305,6 +308,7 @@
 				07BB16032EF1C3FE00F3D2BB /* ViewConstants.swift in Sources */,
 				07121EF32ED49D2C00644F2A /* PermissionsView.swift in Sources */,
 				073201122F083CA900C687CE /* NotesView.swift in Sources */,
+				0776C2172F9124B500DB6E54 /* Makefile in Sources */,
 				073201132F083CA900C687CE /* EventTimeView.swift in Sources */,
 				073201142F083CA900C687CE /* CalendarSectionView.swift in Sources */,
 				07F0E4882F085DD8000C43A8 /* ParticipationView.swift in Sources */,

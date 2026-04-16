@@ -5,24 +5,47 @@ struct PermissionsView: View {
 
     var body: some View {
       ContentUnavailableView {
-        Label("Need permissions", systemImage: "calendar.badge.lock")
+        Label("Calendar & Reminder Access", systemImage: "calendar.badge.lock")
       } description: {
-        VStack(alignment: .leading, spacing: 4) {
-          Label(
-            "Calendar",
-            systemImage: permissionsVM.hasCalendarPermission ? "checkmark.circle.fill" : "circle"
-          )
-          Label(
-            "Reminders",
-            systemImage: permissionsVM.hasReminderPermission ? "checkmark.circle.fill" : "circle"
-          )
+        VStack(spacing: 12) {
+          Text("MenuCal needs access to your calendars and reminders to display your events.")
+            .multilineTextAlignment(.center)
+
+          VStack(alignment: .leading, spacing: 4) {
+            Label(
+              "Calendar",
+              systemImage: permissionsVM.hasCalendarPermission ? "checkmark.circle.fill" : "circle"
+            )
+            Label(
+              "Reminders",
+              systemImage: permissionsVM.hasReminderPermission ? "checkmark.circle.fill" : "circle"
+            )
+          }
+          .font(.callout)
         }
-        .font(.callout)
       } actions: {
-        Button("Grant Access") {
-          Task { await permissionsVM.requestPermissions() }
+        if permissionsVM.isRequestingPermissions {
+          ProgressView()
+            .controlSize(.small)
+        } else if permissionsVM.hasUngrantedRequestable {
+          Button("Grant Access") {
+            Task { await permissionsVM.requestPermissions() }
+          }
+          .glassEffect()
         }
-        .glassEffect()
+
+        if permissionsVM.allDenied {
+          VStack(spacing: 8) {
+            Text("Permissions were denied. Please enable them in System Settings.")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .multilineTextAlignment(.center)
+            Button("Open System Settings") {
+              permissionsVM.openSystemSettings()
+            }
+            .glassEffect()
+          }
+        }
       }
       .padding(.vertical, 32)
     }
