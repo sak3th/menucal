@@ -293,7 +293,7 @@ struct DayCell: View {
   }
 
   private var isToday: Bool {
-    Calendar.current.isDate(date, inSameDayAs: Date())
+    Calendar.current.isDate(date, inSameDayAs: appVM.lastKnownToday)
   }
 
   private var isInCurrentMonth: Bool {

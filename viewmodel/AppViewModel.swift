@@ -66,23 +66,52 @@ class AppViewModel: Identifiable {
   var selectedDate: Date
   var selectedMonth: Date
   var shouldScrollToSelection: Bool = false
+  private(set) var lastKnownToday: Date
+
+  private var dayChangeObserver: NSObjectProtocol?
 
   init() {
     let todayStart = calendar.startOfDay(for: Date())
     let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: todayStart)) ?? todayStart
     selectedDate = todayStart
     selectedMonth = monthStart
+    lastKnownToday = todayStart
     changeSource = .external
     selectedEvent = nil
+
+    dayChangeObserver = NotificationCenter.default.addObserver(
+      forName: .NSCalendarDayChanged,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor in
+        self?.handleDayChanged()
+      }
+    }
+  }
+
+  deinit {
+    if let dayChangeObserver {
+      NotificationCenter.default.removeObserver(dayChangeObserver)
+    }
   }
 
   // MARK: - Intents
 
   func onAppStart() {
-    let now = Date()
-    selectedDate = calendar.startOfDay(for: now)
-    selectedMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) ?? now
-    changeSource = .external
+    handleDayChanged()
+  }
+
+  func handleDayChanged() {
+    let newToday = calendar.startOfDay(for: Date())
+    let wasOnPreviousToday = calendar.isDate(selectedDate, inSameDayAs: lastKnownToday)
+    lastKnownToday = newToday
+
+    if wasOnPreviousToday {
+      selectedDate = newToday
+      selectedMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: newToday)) ?? newToday
+      changeSource = .external
+    }
   }
 
   func onMonthScrolled(_ date: Date) {
