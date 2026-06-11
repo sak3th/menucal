@@ -68,9 +68,9 @@ struct EventsView: View {
         }
       }
     }
-    .onChange(of: appVM.focusTick) {
-      // Window just became key — apply any selection change (e.g. midnight
-      // rollover) that happened while hidden, when scrolls couldn't run.
+    .onChange(of: appVM.daySyncTick) {
+      // Day rolled over while the popover was hidden, where scrolls can't
+      // run — snap to the new selection now that the window is visible.
       let target = appVM.selectedDate
       guard scrollPosition != target else { return }
       if !dates.contains(target) {

@@ -65,9 +65,12 @@ class AppViewModel: Identifiable {
 
   var selectedDate: Date
   var selectedMonth: Date
-  // Bumped when the popover window becomes key, so views kept alive while
-  // hidden can resync state changes (e.g. midnight rollover) they missed.
-  private(set) var focusTick: Int = 0
+  // Bumped when the popover becomes key after a day rollover moved the
+  // selection, so views kept alive while hidden can resync the scroll they
+  // couldn't perform offscreen. Not bumped on ordinary reopens, which would
+  // clobber the user's browsed position.
+  private(set) var daySyncTick: Int = 0
+  private var needsDaySync = false
   private(set) var lastKnownToday: Date
 
   private var dayChangeObserver: NSObjectProtocol?
@@ -106,11 +109,15 @@ class AppViewModel: Identifiable {
 
   func handleWindowBecameKey() {
     handleDayChanged()
-    focusTick &+= 1
+    if needsDaySync {
+      needsDaySync = false
+      daySyncTick &+= 1
+    }
   }
 
   func handleDayChanged() {
     let newToday = calendar.startOfDay(for: Date())
+    guard !calendar.isDate(newToday, inSameDayAs: lastKnownToday) else { return }
     let wasOnPreviousToday = calendar.isDate(selectedDate, inSameDayAs: lastKnownToday)
     lastKnownToday = newToday
 
@@ -118,6 +125,7 @@ class AppViewModel: Identifiable {
       selectedDate = newToday
       selectedMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: newToday)) ?? newToday
       changeSource = .external
+      needsDaySync = true
     }
   }
 
