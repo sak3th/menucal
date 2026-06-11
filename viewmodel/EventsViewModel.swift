@@ -56,7 +56,7 @@ class EventsViewModel {
 
   func respondToEvent(event: Event, status: ParticipationStatus) async {
     do {
-      try await calendarService.respondToEvent(id: event.id, status: status)
+      try await calendarService.respondToEvent(event: event, status: status)
       await refreshAll()
     } catch {
       print("Failed to respond to event: \(error)")

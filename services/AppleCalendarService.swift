@@ -102,7 +102,8 @@ class AppleCalendarService: CalendarService {
         attendees: ekEvent.attendees?.compactMap { extractParticipant(from: $0) } ?? [],
         participationStatus: extractParticipationStatus(from: ekEvent),
         calendarTitle: ekEvent.calendar.title,
-        calendarSource: ekEvent.calendar.source.title
+        calendarSource: ekEvent.calendar.source.title,
+        externalIdentifier: ekEvent.calendarItemExternalIdentifier
       )
     }
   }
@@ -133,7 +134,8 @@ class AppleCalendarService: CalendarService {
         attendees: ekEvent.attendees?.compactMap { extractParticipant(from: $0) } ?? [],
         participationStatus: extractParticipationStatus(from: ekEvent),
         calendarTitle: ekEvent.calendar.title,
-        calendarSource: ekEvent.calendar.source.title
+        calendarSource: ekEvent.calendar.source.title,
+        externalIdentifier: ekEvent.calendarItemExternalIdentifier
       )
     }
   }
@@ -155,15 +157,19 @@ class AppleCalendarService: CalendarService {
     eventStore.refreshSourcesIfNecessary()
   }
   
-  func respondToEvent(id: String, status: ParticipationStatus) async throws {
+  func respondToEvent(event: Event, status: ParticipationStatus) async throws {
     // NOTE: Public EventKit API does not allow changing participant status directly for the current user
     // on received invitations in a straightforward way (properties are read-only).
-    // We open the specific event in Calendar.app so the user can respond there.
-    print("Attempting to respond to event \(id) with status \(status.rawValue)...")
+    // We hand off: Google events deep-link into Google Calendar (local web app
+    // if installed), everything else opens in Calendar.app.
+    if event.isGoogleEvent, let url = GoogleCalendarDeepLink.eventURL(for: event) {
+      GoogleCalendarDeepLink.open(url)
+      return
+    }
 
     // Open the specific event in Calendar.app using ical:// URL scheme
     // Format: ical://ekevent/<eventIdentifier>?method=show&options=more
-    if let encodedId = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+    if let encodedId = event.id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
        let url = URL(string: "ical://ekevent/\(encodedId)?method=show&options=more") {
       NSWorkspace.shared.open(url)
     }

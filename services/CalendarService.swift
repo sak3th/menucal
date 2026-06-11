@@ -27,5 +27,5 @@ protocol CalendarService {
     func refreshData()
 
     /// Responds to an event invitation.
-    func respondToEvent(id: String, status: ParticipationStatus) async throws
+    func respondToEvent(event: Event, status: ParticipationStatus) async throws
 }

@@ -31,6 +31,9 @@ struct Event: Identifiable {
   let calendarTitle: String
   let calendarSource: String
 
+  // Service-level identifier (iCalUID for synced events)
+  var externalIdentifier: String? = nil
+
   // Video conference link (Zoom, Meet, Teams, etc.)
   var videoCallLink: URL? {
     // Try to extract from URL first
@@ -98,6 +101,33 @@ struct Event: Identifiable {
   
   var isUnaccepted: Bool {
     return participationStatus == .pending || participationStatus == .tentative
+  }
+
+  // MARK: - Google Calendar
+
+  private static let googleUIDSuffix = "@google.com"
+
+  var isGoogleEvent: Bool {
+    externalIdentifier?.hasSuffix(Self.googleUIDSuffix) == true
+  }
+
+  var currentUserEmail: String? {
+    attendees.first(where: { $0.isCurrentUser })?.email
+  }
+
+  // Google's event id for deep links: the iCalUID prefix, plus — for
+  // recurring events — the instance suffix Google derives from the
+  // occurrence's start time in UTC.
+  var googleEventId: String? {
+    guard isGoogleEvent, let uid = externalIdentifier else { return nil }
+    let base = String(uid.dropLast(Self.googleUIDSuffix.count))
+    guard isRecurring else { return base }
+
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "UTC")
+    formatter.dateFormat = isAllDay ? "yyyyMMdd" : "yyyyMMdd'T'HHmmss'Z'"
+    return "\(base)_\(formatter.string(from: startTime))"
   }
 }
 
