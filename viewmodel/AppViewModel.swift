@@ -65,7 +65,9 @@ class AppViewModel: Identifiable {
 
   var selectedDate: Date
   var selectedMonth: Date
-  var shouldScrollToSelection: Bool = false
+  // Bumped when the popover window becomes key, so views kept alive while
+  // hidden can resync state changes (e.g. midnight rollover) they missed.
+  private(set) var focusTick: Int = 0
   private(set) var lastKnownToday: Date
 
   private var dayChangeObserver: NSObjectProtocol?
@@ -100,6 +102,11 @@ class AppViewModel: Identifiable {
 
   func onAppStart() {
     handleDayChanged()
+  }
+
+  func handleWindowBecameKey() {
+    handleDayChanged()
+    focusTick &+= 1
   }
 
   func handleDayChanged() {

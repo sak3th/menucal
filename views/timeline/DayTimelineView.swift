@@ -474,6 +474,16 @@ struct PagedDayTimelineView: View {
           }
         }
       }
+      .onChange(of: appVM.focusTick) {
+        // Window just became key — apply any selection change (e.g. midnight
+        // rollover) that happened while hidden, when scrolls couldn't run.
+        let target = appVM.selectedDate
+        guard scrollPosition != target else { return }
+        if !dates.contains(target) {
+          dates = generateDays(around: target)
+        }
+        scrollPosition = target
+      }
     }
   }
 

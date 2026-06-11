@@ -34,7 +34,7 @@ struct MenuCalApp: App {
               object: nil,
               queue: .main
             ) { _ in
-              appViewModel.handleDayChanged()
+              appViewModel.handleWindowBecameKey()
               if permViewModel.hasPermissions() {
                 Task { await eventsViewModel.refreshAll() }
               }
