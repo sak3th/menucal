@@ -33,6 +33,10 @@ struct Event: Identifiable {
 
   // Service-level identifier (iCalUID for synced events)
   var externalIdentifier: String? = nil
+  // Original start of this occurrence within a recurring series, and whether
+  // it was detached from the series (modified single occurrence)
+  var occurrenceDate: Date? = nil
+  var isDetached: Bool = false
 
   // Video conference link (Zoom, Meet, Teams, etc.)
   var videoCallLink: URL? {
@@ -116,18 +120,23 @@ struct Event: Identifiable {
   }
 
   // Google's event id for deep links: the iCalUID prefix, plus — for
-  // recurring events — the instance suffix Google derives from the
-  // occurrence's start time in UTC.
+  // occurrences of a recurring series (including detached ones) — the
+  // instance suffix Google derives from the occurrence's original start in
+  // UTC. Split series carry an "_R<timestamp>" segment in the series id that
+  // instance ids drop.
   var googleEventId: String? {
     guard isGoogleEvent, let uid = externalIdentifier else { return nil }
-    let base = String(uid.dropLast(Self.googleUIDSuffix.count))
-    guard isRecurring else { return base }
+    var base = String(uid.dropLast(Self.googleUIDSuffix.count))
+    guard isRecurring || isDetached else { return base }
 
+    if let rRange = base.range(of: "_R[0-9]{8}T[0-9]{6}$", options: .regularExpression) {
+      base.removeSubrange(rRange)
+    }
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.timeZone = TimeZone(identifier: "UTC")
     formatter.dateFormat = isAllDay ? "yyyyMMdd" : "yyyyMMdd'T'HHmmss'Z'"
-    return "\(base)_\(formatter.string(from: startTime))"
+    return "\(base)_\(formatter.string(from: occurrenceDate ?? startTime))"
   }
 }
 

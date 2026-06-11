@@ -103,7 +103,9 @@ class AppleCalendarService: CalendarService {
         participationStatus: extractParticipationStatus(from: ekEvent),
         calendarTitle: ekEvent.calendar.title,
         calendarSource: ekEvent.calendar.source.title,
-        externalIdentifier: ekEvent.calendarItemExternalIdentifier
+        externalIdentifier: ekEvent.calendarItemExternalIdentifier,
+        occurrenceDate: ekEvent.occurrenceDate,
+        isDetached: ekEvent.isDetached
       )
     }
   }
@@ -135,7 +137,9 @@ class AppleCalendarService: CalendarService {
         participationStatus: extractParticipationStatus(from: ekEvent),
         calendarTitle: ekEvent.calendar.title,
         calendarSource: ekEvent.calendar.source.title,
-        externalIdentifier: ekEvent.calendarItemExternalIdentifier
+        externalIdentifier: ekEvent.calendarItemExternalIdentifier,
+        occurrenceDate: ekEvent.occurrenceDate,
+        isDetached: ekEvent.isDetached
       )
     }
   }
@@ -163,6 +167,9 @@ class AppleCalendarService: CalendarService {
     // We hand off: Google events deep-link into Google Calendar (local web app
     // if installed), everything else opens in Calendar.app.
     if event.isGoogleEvent, let url = GoogleCalendarDeepLink.eventURL(for: event) {
+      NSLog("RSVP deeplink title=%@ uid=%@ recurring=%d detached=%d url=%@",
+            event.title, event.externalIdentifier ?? "nil", event.isRecurring ? 1 : 0,
+            event.isDetached ? 1 : 0, url.absoluteString)
       GoogleCalendarDeepLink.open(url)
       return
     }
