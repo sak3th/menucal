@@ -18,6 +18,14 @@ enum GoogleCalendarDeepLink {
     return URL(string: "https://calendar.google.com/calendar/event?eid=\(eid)")
   }
 
+  static func openApp() {
+    if let appURL = webAppURL {
+      NSWorkspace.shared.openApplication(at: appURL, configuration: NSWorkspace.OpenConfiguration())
+    } else {
+      NSWorkspace.shared.open(URL(string: "https://calendar.google.com/calendar/r")!)
+    }
+  }
+
   static func open(_ url: URL) {
     if let appURL = webAppURL {
       NSWorkspace.shared.open([url], withApplicationAt: appURL, configuration: NSWorkspace.OpenConfiguration())

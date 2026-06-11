@@ -156,7 +156,7 @@ struct Toolbar: View {
         .interactiveButtonBackground()
 
         Button(action: {
-          NSWorkspace.shared.launchApplication(withBundleIdentifier: "com.apple.iCal", options: [], additionalEventParamDescriptor: nil, launchIdentifier: nil)
+          GoogleCalendarDeepLink.openApp()
         }) {
           Image(systemName: "plus")
             .font(.system(size: 14))
