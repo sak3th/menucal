@@ -86,9 +86,15 @@ struct DayTimelineContent: View {
     let zIndex: Double
   }
 
+  // Standard calendar interval-partitioning layout:
+  // events are clustered into connected overlap groups; within a cluster each
+  // event takes the leftmost free column and all columns share the width equally.
   private func calculateLayout(events: [Event], availableWidth: CGFloat) -> [String: LayoutFrame] {
     var frames: [String: LayoutFrame] = [:]
-    let groupingThreshold: TimeInterval = 30 * 60 // Allow grouping of events within 30 mins to handle text overlap
+
+    func visualEnd(_ event: Event) -> Date {
+      max(event.endTime, event.startTime.addingTimeInterval(minVisualDuration))
+    }
 
     // 1. Sort events
     let sortedEvents = events.sorted {
@@ -99,113 +105,62 @@ struct DayTimelineContent: View {
        return ($0.endTime.timeIntervalSince($0.startTime)) > ($1.endTime.timeIntervalSince($1.startTime))
     }
 
-    // 2. Group overlapping events
-    var groups: [[Event]] = []
-    var currentGroup: [Event] = []
-    var groupEnd: Date = .distantPast
+    // 2. Cluster events that visually overlap
+    var clusters: [[Event]] = []
+    var currentCluster: [Event] = []
+    var clusterEnd: Date = .distantPast
 
     for event in sortedEvents {
-      let visualEnd = max(event.endTime, event.startTime.addingTimeInterval(minVisualDuration))
-
-      if currentGroup.isEmpty {
-        currentGroup.append(event)
-        groupEnd = visualEnd
+      if currentCluster.isEmpty || event.startTime < clusterEnd {
+        currentCluster.append(event)
+        clusterEnd = max(clusterEnd, visualEnd(event))
       } else {
-        // Check overlap with the *group's* range
-        // Note: A simple check against groupEnd works for contiguous groups
-        if event.startTime < groupEnd.addingTimeInterval(groupingThreshold) {
-          currentGroup.append(event)
-          if visualEnd > groupEnd {
-            groupEnd = visualEnd
-          }
-        } else {
-          groups.append(currentGroup)
-          currentGroup = [event]
-          groupEnd = visualEnd
-        }
+        clusters.append(currentCluster)
+        currentCluster = [event]
+        clusterEnd = visualEnd(event)
       }
     }
-    if !currentGroup.isEmpty {
-      groups.append(currentGroup)
+    if !currentCluster.isEmpty {
+      clusters.append(currentCluster)
     }
 
-    // 3. Process each group
-    for group in groups {
-      processGroup(group, availableWidth: availableWidth, into: &frames)
-    }
-
-    return frames
-  }
-
-  private func processGroup(_ group: [Event], availableWidth: CGFloat, into frames: inout [String: LayoutFrame]) {
-    var eventDepths: [String: Int] = [:]
-    let headerClearance: TimeInterval = 10 * 60 // 10 mins clearance for title
-    let stackThreshold: TimeInterval = 30 * 60 // Minimum time overlap for side-by-side
-
-    for event in group {
-      var depth = 0
-      for other in group {
-        if event.id == other.id { continue }
-        let e1 = other
-        let e2 = event
-
-        // Strict containment with Header Clearance:
-        if e1.startTime.addingTimeInterval(headerClearance) <= e2.startTime && e1.endTime >= e2.endTime {
-          depth += 1
-        }
-      }
-      eventDepths[event.id] = depth
-    }
-
-    let maxDepth = eventDepths.values.max() ?? 0
-
-    for depth in 0...maxDepth {
-      let eventsInLayer = group.filter { (eventDepths[$0.id] ?? 0) == depth }
-      if eventsInLayer.isEmpty { continue }
-
+    // 3. Within each cluster, assign each event the leftmost free column
+    for cluster in clusters {
       var columns: [[Event]] = []
-      for event in eventsInLayer {
+      var columnIndex: [String: Int] = [:]
+
+      for event in cluster {
         var placed = false
         for (colIndex, column) in columns.enumerated() {
-          if let lastEvent = column.last {
-            let lastVisualEnd = max(lastEvent.endTime, lastEvent.startTime.addingTimeInterval(minVisualDuration))
-
-            // Placement Condition:
-            // 1. Must fit vertically (no overlap with visual end of last event).
-            // 2. Must start significantly later than the last event's START (to prevent "staircasing" of very short events).
-            //    If event starts within `stackThreshold` of lastEvent's start, force new column.
-            if event.startTime >= lastVisualEnd && event.startTime >= lastEvent.startTime.addingTimeInterval(stackThreshold) {
-              columns[colIndex].append(event)
-              placed = true
-              break
-            }
+          if let last = column.last, visualEnd(last) <= event.startTime {
+            columns[colIndex].append(event)
+            columnIndex[event.id] = colIndex
+            placed = true
+            break
           }
         }
         if !placed {
           columns.append([event])
+          columnIndex[event.id] = columns.count - 1
         }
       }
 
-      let numColumns = CGFloat(columns.count)
-      let indent = CGFloat(depth) * 10.0
-      let layerAvailableWidth = availableWidth - indent
-      let columnWidth = layerAvailableWidth / numColumns
+      let columnWidth = availableWidth / CGFloat(columns.count)
 
-      for (colIndex, column) in columns.enumerated() {
-        for event in column {
-          let y = yPosition(for: event.startTime)
+      for event in cluster {
+        let y = yPosition(for: event.startTime)
 
-          let rawDuration = event.endTime.timeIntervalSince(event.startTime)
-          let visualDuration = max(rawDuration, minVisualDuration)
-          let height = (CGFloat(visualDuration / 3600.0) * hourSpacing) - eventVerticalPadding
+        let rawDuration = event.endTime.timeIntervalSince(event.startTime)
+        let visualDuration = max(rawDuration, minVisualDuration)
+        let height = (CGFloat(visualDuration / 3600.0) * hourSpacing) - eventVerticalPadding
 
-          let width = columnWidth - 2
-          let x = indent + CGFloat(colIndex) * columnWidth
+        let x = CGFloat(columnIndex[event.id] ?? 0) * columnWidth
 
-          frames[event.id] = LayoutFrame(x: x, y: y, width: width, height: height, zIndex: Double(depth))
-        }
+        frames[event.id] = LayoutFrame(x: x, y: y, width: columnWidth - 2, height: height, zIndex: 0)
       }
     }
+
+    return frames
   }
 
   private func yPosition(for date: Date) -> CGFloat {
