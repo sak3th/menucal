@@ -104,6 +104,7 @@ struct EventsView: View {
 struct SingleDayEventsView: View {
   let date: Date
   let hiddenCalendarIDs: Set<String>
+  @Environment(EventsViewModel.self) private var eventsVM
   @State private var viewModel = DayEventsViewModel()
   
   var body: some View {
@@ -116,7 +117,7 @@ struct SingleDayEventsView: View {
         VStack(alignment: .center, spacing: 0) {
           if !viewModel.allDayEvents.isEmpty {
             let allDayEvents = viewModel.allDayEvents
-            ForEach(Array(allDayEvents.enumerated()), id: \.element.uuid) { index, event in
+            ForEach(Array(allDayEvents.enumerated()), id: \.element.id) { index, event in
               VStack(spacing: 0) {
                 if !event.isUnaccepted && (index == 0 || !allDayEvents[index - 1].isUnaccepted) {
                   Divider().opacity(0.5)
@@ -131,7 +132,7 @@ struct SingleDayEventsView: View {
           
           if !viewModel.events.isEmpty {
             let events = viewModel.events
-            ForEach(Array(events.enumerated()), id: \.element.uuid) { index, event in
+            ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
               VStack(spacing: 0) {
                 if !event.isUnaccepted && (index == 0 || !events[index - 1].isUnaccepted) {
                   Divider().opacity(0.5)
@@ -153,6 +154,11 @@ struct SingleDayEventsView: View {
       await viewModel.fetchEvents(for: date, hiddenCalendarIDs: hiddenCalendarIDs)
     }
     .onChange(of: hiddenCalendarIDs) {
+      Task {
+        await viewModel.fetchEvents(for: date, hiddenCalendarIDs: hiddenCalendarIDs)
+      }
+    }
+    .onChange(of: eventsVM.refreshTick) {
       Task {
         await viewModel.fetchEvents(for: date, hiddenCalendarIDs: hiddenCalendarIDs)
       }

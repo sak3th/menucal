@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 
 @main
 struct MenuCalApp: App {
@@ -26,6 +27,16 @@ struct MenuCalApp: App {
             if permViewModel.hasPermissions() {
               Task {
                 await eventsViewModel.refreshAll()
+              }
+            }
+            NotificationCenter.default.addObserver(
+              forName: NSWindow.didBecomeKeyNotification,
+              object: nil,
+              queue: .main
+            ) { _ in
+              appViewModel.handleDayChanged()
+              if permViewModel.hasPermissions() {
+                Task { await eventsViewModel.refreshAll() }
               }
             }
           }

@@ -5,7 +5,6 @@ import SwiftUI
 // It's Identifiable so SwiftUI can easily work with collections of events.
 struct Event: Identifiable {
   let id: String
-  let uuid = UUID()
   let title: String
   let startTime: Date
   let endTime: Date

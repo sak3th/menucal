@@ -18,7 +18,8 @@ class EventsViewModel {
   
   var calendars: [CalendarInfo] = []
   var isRefreshing: Bool = false
-  
+  var refreshTick: Int = 0
+
   private let calendarService: CalendarService = AppleCalendarService()
   
   init() {
@@ -33,6 +34,7 @@ class EventsViewModel {
     await fetchCalendars()
     try? await Task.sleep(for: .seconds(1))
     isRefreshing = false
+    refreshTick &+= 1
   }
   
   func fetchCalendars() async {

@@ -69,6 +69,11 @@ struct DayTimelineContent: View {
         await viewModel.fetchEvents(for: date, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
       }
     }
+    .onChange(of: eventsVM.refreshTick) {
+      Task {
+        await viewModel.fetchEvents(for: date, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
+      }
+    }
   }
 
   // MARK: - Layout Logic
@@ -376,6 +381,8 @@ struct CurrentTimeIndicator: View {
 
 struct PagedDayTimelineView: View {
   @Environment(AppViewModel.self) private var appVM
+  @Environment(EventsViewModel.self) private var eventsVM
+  @State private var allDayVM = DayEventsViewModel()
 
   @State private var dates: [Date] = []
   @State private var scrollPosition: Date?
@@ -401,6 +408,35 @@ struct PagedDayTimelineView: View {
   }
 
   var body: some View {
+    VStack(spacing: 0) {
+      if !allDayVM.allDayEvents.isEmpty {
+        VStack(spacing: 0) {
+          ForEach(allDayVM.allDayEvents) { event in
+            DayEventView(event: event)
+              .padding(.horizontal, 8)
+              .padding(.vertical, 4)
+          }
+          Divider().opacity(0.5)
+        }
+      }
+      pagedTimeline
+    }
+    .task(id: appVM.selectedDate) {
+      await allDayVM.fetchEvents(for: appVM.selectedDate, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
+    }
+    .onChange(of: eventsVM.hiddenCalendarIDs) {
+      Task {
+        await allDayVM.fetchEvents(for: appVM.selectedDate, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
+      }
+    }
+    .onChange(of: eventsVM.refreshTick) {
+      Task {
+        await allDayVM.fetchEvents(for: appVM.selectedDate, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
+      }
+    }
+  }
+
+  private var pagedTimeline: some View {
     ScrollViewReader { proxy in
       ScrollView(.vertical) {
         ZStack(alignment: .topLeading) {
