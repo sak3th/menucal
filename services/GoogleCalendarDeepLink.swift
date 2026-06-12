@@ -18,6 +18,13 @@ enum GoogleCalendarDeepLink {
     return URL(string: "https://calendar.google.com/calendar/event?eid=\(eid)")
   }
 
+  // Day view, for events whose exact id can't be derived (foreign iCalUID)
+  static func dayURL(for date: Date) -> URL? {
+    let c = Calendar.current.dateComponents([.year, .month, .day], from: date)
+    guard let y = c.year, let m = c.month, let d = c.day else { return nil }
+    return URL(string: "https://calendar.google.com/calendar/r/day/\(y)/\(m)/\(d)")
+  }
+
   static func openApp() {
     if let appURL = webAppURL {
       NSWorkspace.shared.openApplication(at: appURL, configuration: NSWorkspace.OpenConfiguration())

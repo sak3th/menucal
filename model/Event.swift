@@ -33,6 +33,9 @@ struct Event: Identifiable {
 
   // Service-level identifier (iCalUID for synced events)
   var externalIdentifier: String? = nil
+  // Whether the event's calendar lives on a Google account, regardless of
+  // where the event itself was created (foreign-UID invites)
+  var isOnGoogleAccount: Bool = false
   // Original start of this occurrence within a recurring series, and whether
   // it was detached from the series (modified single occurrence)
   var occurrenceDate: Date? = nil
@@ -111,12 +114,39 @@ struct Event: Identifiable {
 
   private static let googleUIDSuffix = "@google.com"
 
+  // EventKit appends "/RID=<timestamp>" to the iCalUID of detached
+  // occurrences — strip it to get the series UID.
+  private var normalizedUID: String? {
+    guard let uid = externalIdentifier else { return nil }
+    if let ridRange = uid.range(of: "/RID=") {
+      return String(uid[..<ridRange.lowerBound])
+    }
+    return uid
+  }
+
+  // The RID is the occurrence's original start as seconds since the Apple
+  // reference date — authoritative for rescheduled occurrences.
+  private var ridDate: Date? {
+    guard let uid = externalIdentifier,
+          let ridRange = uid.range(of: "/RID="),
+          let interval = TimeInterval(uid[ridRange.upperBound...]) else { return nil }
+    return Date(timeIntervalSinceReferenceDate: interval)
+  }
+
   var isGoogleEvent: Bool {
-    externalIdentifier?.hasSuffix(Self.googleUIDSuffix) == true
+    normalizedUID?.hasSuffix(Self.googleUIDSuffix) == true
   }
 
   var currentUserEmail: String? {
-    attendees.first(where: { $0.isCurrentUser })?.email
+    if let email = attendees.first(where: { $0.isCurrentUser })?.email {
+      return email
+    }
+    // Group invites may not list the user individually. Google primary
+    // calendars are titled with the account email; CalDAV source titles
+    // sometimes are too.
+    if calendarTitle.contains("@") { return calendarTitle }
+    if calendarSource.contains("@") { return calendarSource }
+    return nil
   }
 
   // Google's event id for deep links: the iCalUID prefix, plus — for
@@ -125,7 +155,7 @@ struct Event: Identifiable {
   // UTC. Split series carry an "_R<timestamp>" segment in the series id that
   // instance ids drop.
   var googleEventId: String? {
-    guard isGoogleEvent, let uid = externalIdentifier else { return nil }
+    guard isGoogleEvent, let uid = normalizedUID else { return nil }
     var base = String(uid.dropLast(Self.googleUIDSuffix.count))
     guard isRecurring || isDetached else { return base }
 
@@ -136,7 +166,7 @@ struct Event: Identifiable {
     formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.timeZone = TimeZone(identifier: "UTC")
     formatter.dateFormat = isAllDay ? "yyyyMMdd" : "yyyyMMdd'T'HHmmss'Z'"
-    return "\(base)_\(formatter.string(from: occurrenceDate ?? startTime))"
+    return "\(base)_\(formatter.string(from: ridDate ?? occurrenceDate ?? startTime))"
   }
 }
 

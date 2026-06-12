@@ -104,6 +104,7 @@ class AppleCalendarService: CalendarService {
         calendarTitle: ekEvent.calendar.title,
         calendarSource: ekEvent.calendar.source.title,
         externalIdentifier: ekEvent.calendarItemExternalIdentifier,
+        isOnGoogleAccount: isGoogleSource(ekEvent.calendar.source),
         occurrenceDate: ekEvent.occurrenceDate,
         isDetached: ekEvent.isDetached
       )
@@ -138,6 +139,7 @@ class AppleCalendarService: CalendarService {
         calendarTitle: ekEvent.calendar.title,
         calendarSource: ekEvent.calendar.source.title,
         externalIdentifier: ekEvent.calendarItemExternalIdentifier,
+        isOnGoogleAccount: isGoogleSource(ekEvent.calendar.source),
         occurrenceDate: ekEvent.occurrenceDate,
         isDetached: ekEvent.isDetached
       )
@@ -166,19 +168,57 @@ class AppleCalendarService: CalendarService {
     // on received invitations in a straightforward way (properties are read-only).
     // We hand off: Google events deep-link into Google Calendar (local web app
     // if installed), everything else opens in Calendar.app.
+    debugLog("RSVP title=\(event.title) uid=\(event.externalIdentifier ?? "nil") " +
+             "calTitle=\(event.calendarTitle) calSource=\(event.calendarSource) " +
+             "googleAccount=\(event.isOnGoogleAccount) selfEmail=\(event.currentUserEmail ?? "nil") " +
+             "recurring=\(event.isRecurring) detached=\(event.isDetached)")
+
     if event.isGoogleEvent, let url = GoogleCalendarDeepLink.eventURL(for: event) {
-      NSLog("RSVP deeplink title=%@ uid=%@ recurring=%d detached=%d url=%@",
-            event.title, event.externalIdentifier ?? "nil", event.isRecurring ? 1 : 0,
-            event.isDetached ? 1 : 0, url.absoluteString)
+      debugLog("RSVP -> event deeplink \(url.absoluteString)")
       GoogleCalendarDeepLink.open(url)
       return
     }
+
+    // Event lives on a Google calendar but its exact id can't be derived
+    // (foreign iCalUID) — open Google Calendar on the event's day instead.
+    if event.isOnGoogleAccount, let url = GoogleCalendarDeepLink.dayURL(for: event.startTime) {
+      debugLog("RSVP -> day deeplink \(url.absoluteString)")
+      GoogleCalendarDeepLink.open(url)
+      return
+    }
+
+    debugLog("RSVP -> Calendar.app fallback")
 
     // Open the specific event in Calendar.app using ical:// URL scheme
     // Format: ical://ekevent/<eventIdentifier>?method=show&options=more
     if let encodedId = event.id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
        let url = URL(string: "ical://ekevent/\(encodedId)?method=show&options=more") {
       NSWorkspace.shared.open(url)
+    }
+  }
+
+  // Google accounts can carry any user-chosen name in Internet Accounts
+  // (e.g. "Spry"), so treat every non-iCloud CalDAV source as Google. Only
+  // used to pick the day-view handoff over Calendar.app for events whose
+  // exact Google id can't be derived.
+  private func isGoogleSource(_ source: EKSource?) -> Bool {
+    guard let source else { return false }
+    return source.sourceType == .calDAV
+      && source.title.localizedCaseInsensitiveCompare("iCloud") != .orderedSame
+  }
+
+  // Sandboxed NSLog lines were not reliably visible in `log show`; append to a
+  // file in the container instead (read it via
+  // ~/Library/Containers/sak3th.MenuCal/Data/tmp/rsvp-debug.log).
+  private func debugLog(_ line: String) {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("rsvp-debug.log")
+    let data = Data("\(Date()) \(line)\n".utf8)
+    if let handle = try? FileHandle(forWritingTo: url) {
+      defer { try? handle.close() }
+      _ = try? handle.seekToEnd()
+      try? handle.write(contentsOf: data)
+    } else {
+      try? data.write(to: url)
     }
   }
 
