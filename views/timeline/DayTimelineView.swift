@@ -475,14 +475,14 @@ struct PagedDayTimelineView: View {
         }
       }
       .onChange(of: appVM.daySyncTick) {
-        // Day rolled over while the popover was hidden, where scrolls can't
-        // run — snap to the new selection now that the window is visible.
+        // Day rolled over while the popover was hidden. The scrollPosition
+        // binding may already equal the target while the visible page is
+        // stale (the midnight scroll ran offscreen), so don't trust it —
+        // rebuild the date window and reposition on the fresh content.
         let target = appVM.selectedDate
-        guard scrollPosition != target else { return }
-        if !dates.contains(target) {
-          dates = generateDays(around: target)
-        }
+        dates = generateDays(around: target)
         scrollPosition = target
+        proxy.scrollTo("hour-\(scrollHour(for: target))", anchor: .top)
       }
     }
   }

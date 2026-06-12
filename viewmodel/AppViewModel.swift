@@ -112,6 +112,7 @@ class AppViewModel: Identifiable {
     if needsDaySync {
       needsDaySync = false
       daySyncTick &+= 1
+      NSLog("daySync: re-anchoring pagers to %@", selectedDate as NSDate)
     }
   }
 
