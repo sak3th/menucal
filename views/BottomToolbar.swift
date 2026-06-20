@@ -90,6 +90,7 @@ struct CalendarListView: View {
       }
       .padding(14)
     }
+    .scrollIndicators(.hidden)
     .frame(maxHeight: appVM.appHeight * 0.7)
     .fixedSize(horizontal: false, vertical: true)
     .task {
