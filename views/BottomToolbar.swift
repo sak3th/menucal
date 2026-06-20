@@ -12,7 +12,7 @@ struct BottomToolbar: View {
 
   var body: some View {
     HStack(alignment: .bottom) {
-      if appVM.activeOverlay != .calendarList {
+      if appVM.activeOverlay != .calendarList && appVM.activeOverlay != .settings {
         GlassEffectContainer {
           Button(action: {appVM.onTodayClicked()}) {
             Text("Today")
@@ -30,21 +30,15 @@ struct BottomToolbar: View {
 
       GlassEffectContainer {
         if appVM.activeOverlay == .calendarList {
-          VStack(spacing: 0) {
-            CalendarListView()
-            Divider().padding(.horizontal, 8)
-            Button(action: { withAnimation(.spring) { appVM.activeOverlay = .none } }) {
-              Text("Done")
-                .font(.system(size: 13))
-                .padding(.vertical, 6)
-                .padding(.horizontal, 12)
-            }
-            .interactiveButtonBackground()
-            .padding(4)
-          }
-          .frame(maxWidth: .infinity)
-          .glassEffect(in: RoundedRectangle(cornerRadius: 16.0))
-          .glassEffectTransition(.matchedGeometry)
+          CalendarListView()
+            .frame(maxWidth: .infinity)
+            .glassEffect(in: RoundedRectangle(cornerRadius: 16.0))
+            .glassEffectTransition(.matchedGeometry)
+        } else if appVM.activeOverlay == .settings {
+          SettingsView(maxContentHeight: appVM.appHeight * 0.62)
+            .frame(maxWidth: .infinity)
+            .glassEffect(in: RoundedRectangle(cornerRadius: 16.0))
+            .glassEffectTransition(.matchedGeometry)
         } else {
           HStack(spacing: 4) {
             Button(action: { withAnimation(.spring) { appVM.activeOverlay = .calendarList } }) {
@@ -54,8 +48,8 @@ struct BottomToolbar: View {
             }
             .interactiveButtonBackground()
 
-            Button(action: {}) {
-              Image(systemName: "tray")
+            Button(action: { withAnimation(.spring) { appVM.activeOverlay = .settings } }) {
+              Image(systemName: "gearshape")
                 .toolbarIcon()
                 .padding(6)
             }
@@ -80,35 +74,21 @@ struct CalendarListView: View {
     let sortedKeys = grouped.keys.sorted()
 
     ScrollView {
-      VStack(alignment: .leading, spacing: 0) {
+      VStack(alignment: .leading, spacing: 18) {
         ForEach(sortedKeys, id: \.self) { source in
-          Text(source)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 12)
-            .padding(.top, 10)
-            .padding(.bottom, 4)
-
-          ForEach(grouped[source] ?? []) { calendar in
-            Button(action: { eventsVM.toggleCalendarVisibility(id: calendar.id) }) {
-              HStack {
-                Image(systemName: !eventsVM.hiddenCalendarIDs.contains(calendar.id) ? "checkmark.square.fill" : "square")
-                  .foregroundStyle(calendar.color)
-                  .font(.title3)
-                Text(calendar.title)
-                  .font(.system(size: 15, weight: .regular))
-                  .foregroundStyle(.primary)
-                Spacer()
+          SettingsSection(source) {
+            ForEach(grouped[source] ?? []) { calendar in
+              CalendarToggleRow(
+                calendar: calendar,
+                isOn: !eventsVM.hiddenCalendarIDs.contains(calendar.id)
+              ) {
+                eventsVM.toggleCalendarVisibility(id: calendar.id)
               }
-              .contentShape(Rectangle())
-              .padding(.horizontal, 12)
-              .padding(.vertical, 4)
             }
-            .buttonStyle(.plain)
           }
         }
       }
-      .padding(.vertical, 4)
+      .padding(14)
     }
     .frame(maxHeight: appVM.appHeight * 0.7)
     .fixedSize(horizontal: false, vertical: true)
@@ -118,6 +98,53 @@ struct CalendarListView: View {
   }
 }
 
+
+struct CalendarToggleRow: View {
+  let calendar: CalendarInfo
+  let isOn: Bool
+  let toggle: () -> Void
+  @State private var hovering = false
+
+  var body: some View {
+    Button(action: toggle) {
+      HStack(spacing: 10) {
+        RoundedCheckbox(isOn: isOn, color: calendar.color)
+        Text(calendar.title)
+          .font(.system(size: 13, weight: .regular))
+          .foregroundStyle(.primary)
+        Spacer(minLength: 0)
+      }
+      .padding(.horizontal, 12)
+      .padding(.vertical, 8)
+      .contentShape(Rectangle())
+      .background(hovering ? Color.primary.opacity(0.05) : Color.clear)
+    }
+    .buttonStyle(.plain)
+    .onHover { hovering = $0 }
+  }
+}
+
+struct RoundedCheckbox: View {
+  let isOn: Bool
+  let color: Color
+
+  var body: some View {
+    RoundedRectangle(cornerRadius: 5, style: .continuous)
+      .fill(isOn ? color : Color.clear)
+      .overlay {
+        RoundedRectangle(cornerRadius: 5, style: .continuous)
+          .strokeBorder(isOn ? Color.clear : Color.secondary.opacity(0.4), lineWidth: 1.5)
+      }
+      .overlay {
+        if isOn {
+          Image(systemName: "checkmark")
+            .font(.system(size: 8, weight: .bold))
+            .foregroundStyle(color.contrastingForegroundColor)
+        }
+      }
+      .frame(width: 15, height: 15)
+  }
+}
 
 #Preview {
   BottomToolbar()

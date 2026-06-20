@@ -14,7 +14,7 @@ enum ChangeSource {
 }
 
 enum OverlayMode: Hashable {
-  case none, eventsMenu, calendarViewMenu, calendarList
+  case none, eventsMenu, calendarViewMenu, calendarList, settings
 }
 
 enum CalendarViewMode: Hashable {
@@ -32,10 +32,10 @@ class AppViewModel: Identifiable {
   // Every height frame reads this single value so they always agree.
   var appHeight: CGFloat = ViewConstants.appHeight
 
-  func updateAppHeight(for screen: NSScreen?) {
+  func updateAppHeight(for screen: NSScreen?, fraction: CGFloat = ViewConstants.appHeightFraction) {
     let visibleHeight = (screen ?? NSScreen.main)?.visibleFrame.height ?? 900
     let height = min(
-      max(visibleHeight * ViewConstants.appHeightFraction, ViewConstants.minAppHeight),
+      max(visibleHeight * fraction, ViewConstants.minAppHeight),
       ViewConstants.maxAppHeight
     )
     if height != appHeight { appHeight = height }
@@ -121,13 +121,34 @@ class AppViewModel: Identifiable {
     handleDayChanged()
   }
 
-  func handleWindowBecameKey() {
+  func handleWindowBecameKey(resetToToday: Bool = false) {
     handleDayChanged()
+    if resetToToday {
+      goHome()
+      needsDaySync = true
+    }
     if needsDaySync {
       needsDaySync = false
       daySyncTick &+= 1
-      NSLog("daySync: re-anchoring pagers to %@", selectedDate as NSDate)
     }
+  }
+
+  // Close the menu bar popover (no public API; order the panel out).
+  func dismissPopover() {
+    for window in NSApp.windows
+    where abs(window.frame.width - ViewConstants.appWidth) < 80 {
+      window.orderOut(nil)
+    }
+  }
+
+  // Return to a clean starting state: today, no event detail, no menus.
+  func goHome() {
+    selectedEvent = nil
+    activeOverlay = .none
+    let now = Date()
+    selectedDate = calendar.startOfDay(for: now)
+    selectedMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) ?? now
+    changeSource = .external
   }
 
   func handleDayChanged() {

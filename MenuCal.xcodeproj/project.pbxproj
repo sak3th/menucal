@@ -27,6 +27,9 @@
 		07447BA22EF9B15900C05C80 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07447BA12EF9B15900C05C80 /* EventsView.swift */; };
 		074875702ED39A0F00867C1D /* ReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0748756F2ED39A0F00867C1D /* ReminderService.swift */; };
 		074875722ED39A1200867C1D /* AppleCalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875712ED39A1200867C1D /* AppleCalendarService.swift */; };
+		B0000002ED39A1200867C1D /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000002ED39A1200867C1D /* SettingsViewModel.swift */; };
+		B0000012ED39A1200867C1D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000012ED39A1200867C1D /* SettingsView.swift */; };
+		B0000022ED39A1200867C1D /* AddEventLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000022ED39A1200867C1D /* AddEventLauncher.swift */; };
 		GC0000012ED39A1200867C1D /* GoogleCalendarDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = GC0000022ED39A1200867C1D /* GoogleCalendarDeepLink.swift */; };
 		074875742ED39A1400867C1D /* AppleReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875732ED39A1400867C1D /* AppleReminderService.swift */; };
 		074875762ED39A1600867C1D /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875752ED39A1600867C1D /* CalendarService.swift */; };
@@ -71,6 +74,9 @@
 		074875382ED395AB00867C1D /* MenuCal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuCal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0748756F2ED39A0F00867C1D /* ReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderService.swift; sourceTree = "<group>"; };
 		074875712ED39A1200867C1D /* AppleCalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleCalendarService.swift; sourceTree = "<group>"; };
+		F0000002ED39A1200867C1D /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
+		F0000012ED39A1200867C1D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		F0000022ED39A1200867C1D /* AddEventLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEventLauncher.swift; sourceTree = "<group>"; };
 		GC0000022ED39A1200867C1D /* GoogleCalendarDeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleCalendarDeepLink.swift; sourceTree = "<group>"; };
 		074875732ED39A1400867C1D /* AppleReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleReminderService.swift; sourceTree = "<group>"; };
 		074875752ED39A1600867C1D /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
@@ -119,6 +125,7 @@
 				074875752ED39A1600867C1D /* CalendarService.swift */,
 				074875732ED39A1400867C1D /* AppleReminderService.swift */,
 				074875712ED39A1200867C1D /* AppleCalendarService.swift */,
+				F0000022ED39A1200867C1D /* AddEventLauncher.swift */,
 				GC0000022ED39A1200867C1D /* GoogleCalendarDeepLink.swift */,
 				0748756F2ED39A0F00867C1D /* ReminderService.swift */,
 			);
@@ -131,6 +138,7 @@
 				07ED3E9F2EF5B59B00F684AA /* AppViewModel.swift */,
 				07ED3EA32EF5C71500F684AA /* PermissionsViewModel.swift */,
 				07ED3EA52EF5C7AA00F684AA /* EventsViewModel.swift */,
+				F0000002ED39A1200867C1D /* SettingsViewModel.swift */,
 			);
 			path = viewmodel;
 			sourceTree = "<group>";
@@ -147,6 +155,7 @@
 				0733B67C2EEEACB2007AFD2C /* PagedWeekView.swift */,
 				07BB16022EF1C3FE00F3D2BB /* ViewConstants.swift */,
 				07BB16042EF1CB4F00F3D2BB /* CalView.swift */,
+				F0000012ED39A1200867C1D /* SettingsView.swift */,
 				07EED5692EF5330A00538628 /* TopToolbar.swift */,
 				077414362EF53B8000018FE3 /* BottomToolbar.swift */,
 				07ED3EA12EF5B6A700F684AA /* AppView.swift */,
@@ -306,6 +315,9 @@
 				07A7CEAE2ED78344009580D5 /* DayBackgroundView.swift in Sources */,
 				074875762ED39A1600867C1D /* CalendarService.swift in Sources */,
 				074875722ED39A1200867C1D /* AppleCalendarService.swift in Sources */,
+				B0000002ED39A1200867C1D /* SettingsViewModel.swift in Sources */,
+				B0000012ED39A1200867C1D /* SettingsView.swift in Sources */,
+				B0000022ED39A1200867C1D /* AddEventLauncher.swift in Sources */,
 				GC0000012ED39A1200867C1D /* GoogleCalendarDeepLink.swift in Sources */,
 				07ED3EA42EF5C71500F684AA /* PermissionsViewModel.swift in Sources */,
 				074875702ED39A0F00867C1D /* ReminderService.swift in Sources */,

@@ -176,6 +176,7 @@ struct DayTimelineContent: View {
 struct DayEventCard: View {
   let event: Event
   @Environment(AppViewModel.self) private var appVM
+  @Environment(SettingsViewModel.self) private var settings
   @State private var isHovering = false
   @State private var isHoveringOnVideoLink = false
 
@@ -218,7 +219,7 @@ struct DayEventCard: View {
             if !isSmall && height > 34 {
               Spacer().frame(height: 1)
               if let url = event.videoCallLink {
-                Link(destination: url) {
+                Button(action: { joinCall(url) }) {
                   HStack(spacing: 3) {
                     Image(systemName: "video.fill")
                     Text(event.meetingProvider)
@@ -304,6 +305,14 @@ struct DayEventCard: View {
     let df = DateFormatter()
     df.dateFormat = "h:mm"
     return "\(df.string(from: start)) - \(df.string(from: end))"
+  }
+
+  private func joinCall(_ url: URL) {
+    openURL(url)
+    if settings.dismissAfterJoin {
+      appVM.goHome()
+      appVM.dismissPopover()
+    }
   }
 }
 

@@ -33,7 +33,6 @@ struct CalView: View {
         }
         .frame(minHeight: appVM.appHeight * 0.3)
         .padding(.horizontal, ViewConstants.padding)
-        .scrollEdgeEffectStyle(.hard, for: .bottom)
       }
       .padding(.top, ViewConstants.padding)
       .frame(width: ViewConstants.appWidth)
@@ -139,7 +138,6 @@ struct CalView: View {
       return .handled
     }
   }
-  
 }
 
 struct TopBar: View {

@@ -11,6 +11,7 @@ import AppKit
 struct VideoCallView: View {
   let event: Event
   @Environment(AppViewModel.self) private var appVM
+  @Environment(SettingsViewModel.self) private var settings
   @State private var isJoinHovered = false
   @State private var isShareHovered = false
 
@@ -30,7 +31,12 @@ struct VideoCallView: View {
             
             Button(action: {
               NSWorkspace.shared.open(videoLink)
-              appVM.selectedEvent = nil
+              if settings.dismissAfterJoin {
+                appVM.goHome()
+                appVM.dismissPopover()
+              } else {
+                appVM.selectedEvent = nil
+              }
             }) {
               Text("Join")
                 .padding(.vertical, 6)

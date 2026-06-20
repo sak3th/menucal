@@ -164,33 +164,41 @@ class AppleCalendarService: CalendarService {
   }
   
   func respondToEvent(event: Event, status: ParticipationStatus) async throws {
-    // NOTE: Public EventKit API does not allow changing participant status directly for the current user
-    // on received invitations in a straightforward way (properties are read-only).
-    // We hand off: Google events deep-link into Google Calendar (local web app
-    // if installed), everything else opens in Calendar.app.
-    debugLog("RSVP title=\(event.title) uid=\(event.externalIdentifier ?? "nil") " +
-             "calTitle=\(event.calendarTitle) calSource=\(event.calendarSource) " +
+    // Public EventKit API can't set participation status (read-only), so we
+    // hand off to the user's preferred calendar target (Settings).
+    let target = SettingsViewModel.shared.addEventAction
+    debugLog("RSVP target=\(target.rawValue) title=\(event.title) uid=\(event.externalIdentifier ?? "nil") " +
              "googleAccount=\(event.isOnGoogleAccount) selfEmail=\(event.currentUserEmail ?? "nil") " +
              "recurring=\(event.isRecurring) detached=\(event.isDetached)")
 
+    // Apple Calendar preference: always hand off to Calendar.app.
+    if target == .appleCalendar {
+      openInAppleCalendar(event)
+      return
+    }
+
+    // Google event with a derivable link → open per preference (browser/web app).
     if event.isGoogleEvent, let url = GoogleCalendarDeepLink.eventURL(for: event) {
       debugLog("RSVP -> event deeplink \(url.absoluteString)")
-      GoogleCalendarDeepLink.open(url)
+      GoogleCalendarDeepLink.openEvent(url)
       return
     }
 
-    // Event lives on a Google calendar but its exact id can't be derived
-    // (foreign iCalUID) — open Google Calendar on the event's day instead.
+    // Google-account event without a derivable id (foreign iCalUID) → open
+    // Google Calendar on the event's day, per preference.
     if event.isOnGoogleAccount, let url = GoogleCalendarDeepLink.dayURL(for: event.startTime) {
       debugLog("RSVP -> day deeplink \(url.absoluteString)")
-      GoogleCalendarDeepLink.open(url)
+      GoogleCalendarDeepLink.openEvent(url)
       return
     }
 
-    debugLog("RSVP -> Calendar.app fallback")
+    // Non-Google event (can't open in Google Calendar) → Calendar.app.
+    openInAppleCalendar(event)
+  }
 
-    // Open the specific event in Calendar.app using ical:// URL scheme
-    // Format: ical://ekevent/<eventIdentifier>?method=show&options=more
+  private func openInAppleCalendar(_ event: Event) {
+    debugLog("RSVP -> Calendar.app")
+    // ical://ekevent/<eventIdentifier>?method=show&options=more
     if let encodedId = event.id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
        let url = URL(string: "ical://ekevent/\(encodedId)?method=show&options=more") {
       NSWorkspace.shared.open(url)

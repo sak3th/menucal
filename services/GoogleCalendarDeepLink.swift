@@ -25,19 +25,41 @@ enum GoogleCalendarDeepLink {
     return URL(string: "https://calendar.google.com/calendar/r/day/\(y)/\(m)/\(d)")
   }
 
-  static func openApp() {
-    if let appURL = webAppURL {
-      NSWorkspace.shared.openApplication(at: appURL, configuration: NSWorkspace.OpenConfiguration())
-    } else {
-      NSWorkspace.shared.open(URL(string: "https://calendar.google.com/calendar/r")!)
+  static let homeURL = URL(string: "https://calendar.google.com/calendar/r")!
+
+  // Opens a Google Calendar URL honoring the user's preferred target:
+  // the browser for `.googleWeb`, the local web app for `.webApp`.
+  static func openEvent(_ url: URL) {
+    switch SettingsViewModel.shared.addEventAction {
+    case .googleWeb:
+      openInBrowser(url)
+    case .webApp, .appleCalendar:
+      openInWebApp(url)
     }
   }
 
-  static func open(_ url: URL) {
-    if let appURL = webAppURL {
-      NSWorkspace.shared.open([url], withApplicationAt: appURL, configuration: NSWorkspace.OpenConfiguration())
+  // For the "+" button's Google/Web App targets (opens the calendar home).
+  static func openHome() {
+    openEvent(homeURL)
+  }
+
+  // Force the default *browser*, not a web app that may claim the domain.
+  static func openInBrowser(_ url: URL) {
+    let probe = URL(string: "https://www.apple.com")!
+    if let browser = NSWorkspace.shared.urlForApplication(toOpen: probe) {
+      NSWorkspace.shared.open([url], withApplicationAt: browser, configuration: NSWorkspace.OpenConfiguration())
     } else {
       NSWorkspace.shared.open(url)
+    }
+  }
+
+  static func openInWebApp(_ url: URL) {
+    let customPath = SettingsViewModel.shared.webAppPath.trimmingCharacters(in: .whitespaces)
+    let appURL: URL? = customPath.isEmpty ? webAppURL : URL(fileURLWithPath: customPath)
+    if let appURL {
+      NSWorkspace.shared.open([url], withApplicationAt: appURL, configuration: NSWorkspace.OpenConfiguration())
+    } else {
+      openInBrowser(url)
     }
   }
 

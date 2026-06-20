@@ -202,9 +202,11 @@ struct DayEventView: View {
 
 struct EventView: View {
   @Environment(AppViewModel.self) private var appVM
+  @Environment(SettingsViewModel.self) private var settings
+  @Environment(\.openURL) private var openURL
 
   let event: Event
-  
+
   @State private var isHovering = false
   @State private var isHoveringOnVideoLink = false
   
@@ -249,7 +251,7 @@ struct EventView: View {
         HStack {
           Group {
             if let url = event.videoCallLink {
-              Link(destination: url) {
+              Button(action: { joinCall(url) }) {
                 HStack(spacing: 4) {
                   Image(systemName: "video")
                   Text(event.meetingProvider)
@@ -321,6 +323,14 @@ struct EventView: View {
     }
     .onHover() { inside in
       isHovering = inside
+    }
+  }
+
+  private func joinCall(_ url: URL) {
+    openURL(url)
+    if settings.dismissAfterJoin {
+      appVM.goHome()
+      appVM.dismissPopover()
     }
   }
 }

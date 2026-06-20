@@ -13,6 +13,7 @@ struct MenuCalApp: App {
   @State private var permViewModel = PermissionsViewModel()
   @State private var appViewModel = AppViewModel()
   @State private var eventsViewModel = EventsViewModel()
+  @State private var settingsViewModel = SettingsViewModel.shared
 
   var body: some Scene {
       MenuBarExtra {
@@ -20,9 +21,13 @@ struct MenuCalApp: App {
           .environment(permViewModel)
           .environment(appViewModel)
           .environment(eventsViewModel)
+          .environment(settingsViewModel)
           .frame(width: ViewConstants.appWidth, height: appViewModel.appHeight)
           .onAppear {
             appViewModel.onAppStart()
+            // Apply the persisted window size on first launch (the first
+            // didBecomeKey may fire before this observer is registered).
+            appViewModel.updateAppHeight(for: NSScreen.main, fraction: settingsViewModel.fraction)
             permViewModel.checkPermissions()
             if permViewModel.hasPermissions() {
               Task {
@@ -35,8 +40,8 @@ struct MenuCalApp: App {
               queue: .main
             ) { note in
               // Resize to whichever display the popover opened on.
-              appViewModel.updateAppHeight(for: (note.object as? NSWindow)?.screen)
-              appViewModel.handleWindowBecameKey()
+              appViewModel.updateAppHeight(for: (note.object as? NSWindow)?.screen, fraction: settingsViewModel.fraction)
+              appViewModel.handleWindowBecameKey(resetToToday: settingsViewModel.resetToTodayOnReopen)
               if permViewModel.hasPermissions() {
                 Task { await eventsViewModel.refreshAll() }
               }
@@ -46,7 +51,7 @@ struct MenuCalApp: App {
               object: nil,
               queue: .main
             ) { _ in
-              appViewModel.updateAppHeight(for: NSApp.keyWindow?.screen)
+              appViewModel.updateAppHeight(for: NSApp.keyWindow?.screen, fraction: settingsViewModel.fraction)
             }
           }
           .onChange(of: permViewModel.hasCalendarPermission) {

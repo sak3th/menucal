@@ -134,6 +134,7 @@ struct CalendarViewMenu: View {
 
 struct Toolbar: View {
   @Environment(AppViewModel.self) private var appVM
+  @Environment(SettingsViewModel.self) private var settings
 
   var onExpandEventsMenu: () -> Void
   var onExpandCalendarViewMenu: () -> Void
@@ -156,7 +157,7 @@ struct Toolbar: View {
         .interactiveButtonBackground()
 
         Button(action: {
-          GoogleCalendarDeepLink.openApp()
+          AddEventLauncher.perform(settings.addEventAction)
         }) {
           Image(systemName: "plus")
             .toolbarIcon()
