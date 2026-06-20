@@ -19,7 +19,10 @@ app: build
 	rm -rf $(DIST_DIR)/$(APP_NAME).app
 	mkdir -p $(DIST_DIR)
 	cp -R $(BUILD_DIR)/$(APP_NAME).app $(DIST_DIR)/$(APP_NAME).app
-	codesign --force --deep --sign - $(DIST_DIR)/$(APP_NAME).app
+	@# Keep xcodebuild's Apple Development signature — a stable signing identity
+	@# is required for TCC (Calendar/Reminders) grants to persist. Re-signing
+	@# ad-hoc here ("--sign -") breaks permissions, so we only verify instead.
+	codesign --verify --strict $(DIST_DIR)/$(APP_NAME).app && echo "signature OK"
 	@echo "Done: $(DIST_DIR)/$(APP_NAME).app"
 
 dmg: app
