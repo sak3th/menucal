@@ -98,7 +98,7 @@ struct CalendarViewMenu: View {
             Image(systemName: "checkmark")
               .font(.system(size: 8))
               .opacity(appVM.selectedCalendarView == .month ? 1 : 0)
-            Image(systemName: "square").font(.system(size: 12))
+            Image(systemName: "31.square").font(.system(size: 12))
             Text("Month")
             Spacer()
           }
@@ -112,7 +112,7 @@ struct CalendarViewMenu: View {
             Image(systemName: "checkmark")
               .font(.system(size: 8))
               .opacity(appVM.selectedCalendarView == .week ? 1 : 0)
-            Image(systemName: "rectangle").font(.system(size: 12))
+            Image(systemName: "7.square").font(.system(size: 12))
             Text("Week")
             Spacer()
           }
@@ -143,14 +143,14 @@ struct Toolbar: View {
       Group {
         Button(action: onExpandEventsMenu) {
           Image(systemName: appVM.getEventsViewSymbol())
-            .font(.system(size: 14))
+            .toolbarIcon()
             .padding(6)
         }
         .interactiveButtonBackground()
 
         Button(action: onExpandCalendarViewMenu) {
           Image(systemName: appVM.getCalendarViewSymbol())
-            .font(.system(size: 14))
+            .toolbarIcon()
             .padding(6)
         }
         .interactiveButtonBackground()
@@ -159,7 +159,7 @@ struct Toolbar: View {
           GoogleCalendarDeepLink.openApp()
         }) {
           Image(systemName: "plus")
-            .font(.system(size: 14))
+            .toolbarIcon()
             .padding(6)
         }
         .interactiveButtonBackground()

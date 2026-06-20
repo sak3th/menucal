@@ -31,7 +31,7 @@ struct CalView: View {
             EventsView()
           }
         }
-        .frame(minHeight: ViewConstants.appHeight * 0.3)
+        .frame(minHeight: appVM.appHeight * 0.3)
         .padding(.horizontal, ViewConstants.padding)
         .scrollEdgeEffectStyle(.hard, for: .bottom)
       }
@@ -42,7 +42,7 @@ struct CalView: View {
       if appVM.activeOverlay != .none {
         Color.clear
           .contentShape(Rectangle())
-          .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight)
+          .frame(width: ViewConstants.appWidth, height: appVM.appHeight)
           .onTapGesture {
             withAnimation(.spring) { appVM.dismissOverlays() }
           }
@@ -51,7 +51,7 @@ struct CalView: View {
 
       BottomToolbar()
         .padding(.bottom, 6)
-        .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight, alignment: .bottom)
+        .frame(width: ViewConstants.appWidth, height: appVM.appHeight, alignment: .bottom)
         .zIndex(3)
 
       TopBar()
@@ -71,13 +71,13 @@ struct CalView: View {
             appVM.selectedEvent = nil
           }
         }
-        .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight)
+        .frame(width: ViewConstants.appWidth, height: appVM.appHeight)
         .transition(.opacity)
         .zIndex(100)
       }
     }
-    .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight)
-    .frame(maxHeight: ViewConstants.appHeight)
+    .frame(width: ViewConstants.appWidth, height: appVM.appHeight)
+    .frame(maxHeight: appVM.appHeight)
     .focusable()
     .focused($isFocused)
     .onAppear {

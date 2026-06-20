@@ -20,7 +20,7 @@ struct MenuCalApp: App {
           .environment(permViewModel)
           .environment(appViewModel)
           .environment(eventsViewModel)
-          .frame(width: ViewConstants.appWidth, height: ViewConstants.appHeight)
+          .frame(width: ViewConstants.appWidth, height: appViewModel.appHeight)
           .onAppear {
             appViewModel.onAppStart()
             permViewModel.checkPermissions()
@@ -33,11 +33,20 @@ struct MenuCalApp: App {
               forName: NSWindow.didBecomeKeyNotification,
               object: nil,
               queue: .main
-            ) { _ in
+            ) { note in
+              // Resize to whichever display the popover opened on.
+              appViewModel.updateAppHeight(for: (note.object as? NSWindow)?.screen)
               appViewModel.handleWindowBecameKey()
               if permViewModel.hasPermissions() {
                 Task { await eventsViewModel.refreshAll() }
               }
+            }
+            NotificationCenter.default.addObserver(
+              forName: NSApplication.didChangeScreenParametersNotification,
+              object: nil,
+              queue: .main
+            ) { _ in
+              appViewModel.updateAppHeight(for: NSApp.keyWindow?.screen)
             }
           }
           .onChange(of: permViewModel.hasCalendarPermission) {

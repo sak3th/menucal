@@ -84,6 +84,15 @@ extension View {
   func singlelineText() -> some View {
     self.modifier(SingleLineText())
   }
+
+  /// Pins a toolbar SF Symbol to a fixed width so swapping symbols (which
+  /// have varying intrinsic widths) doesn't resize the bar. Height stays
+  /// natural so the bar keeps its original vertical size.
+  func toolbarIcon(size: CGFloat = 14, width: CGFloat = 20) -> some View {
+    self
+      .font(.system(size: size))
+      .frame(width: width)
+  }
 }
 
 

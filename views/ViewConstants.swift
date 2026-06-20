@@ -5,6 +5,7 @@
 //  Created by Saketh Vejendla on 16/12/25.
 //
 
+import AppKit
 import Foundation
 
 struct ViewConstants {
@@ -12,7 +13,26 @@ struct ViewConstants {
   static let width: CGFloat = 280.0
   static let padding: CGFloat = 8.0
   //static let appWidth = width + (padding * 0) + 64.0
-  static let appHeight = (height * 3) + (padding * 2)
+
+  // Total popover height scales with the screen the menu bar is on, so the
+  // app doesn't dominate small displays nor stay cramped on large ones. The
+  // month grid stays a fixed size; the extra/less room goes to the day view.
+  //
+  // Computed once and cached: it must return the SAME value for every read
+  // (window frame and inner content frame), otherwise a mismatch leaves the
+  // content centered in a taller window with empty material bands. Adapts to
+  // the current display on next launch.
+  static let appHeightFraction: CGFloat = 0.85
+  static let minAppHeight: CGFloat = 600
+  static let maxAppHeight: CGFloat = 1300
+
+  static let appHeight: CGFloat = {
+    // The menu bar lives on the primary screen (frame origin .zero), which is
+    // where the popover appears.
+    let menuBarScreen = NSScreen.screens.first(where: { $0.frame.origin == .zero }) ?? NSScreen.main
+    let visibleHeight = menuBarScreen?.visibleFrame.height ?? 900
+    return min(max(visibleHeight * appHeightFraction, minAppHeight), maxAppHeight)
+  }()
 
   static let weekNumCellWidth = 22.0
   static let dayCellWidth = 32.0

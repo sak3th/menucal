@@ -49,14 +49,14 @@ struct BottomToolbar: View {
           HStack(spacing: 4) {
             Button(action: { withAnimation(.spring) { appVM.activeOverlay = .calendarList } }) {
               Image(systemName: "calendar")
-                .font(.system(size: 14))
+                .toolbarIcon()
                 .padding(6)
             }
             .interactiveButtonBackground()
 
             Button(action: {}) {
               Image(systemName: "tray")
-                .font(.system(size: 14))
+                .toolbarIcon()
                 .padding(6)
             }
             .interactiveButtonBackground()
@@ -73,6 +73,7 @@ struct BottomToolbar: View {
 
 struct CalendarListView: View {
   @Environment(EventsViewModel.self) private var eventsVM
+  @Environment(AppViewModel.self) private var appVM
 
   var body: some View {
     let grouped = Dictionary(grouping: eventsVM.calendars, by: { $0.sourceTitle })
@@ -91,11 +92,11 @@ struct CalendarListView: View {
           ForEach(grouped[source] ?? []) { calendar in
             Button(action: { eventsVM.toggleCalendarVisibility(id: calendar.id) }) {
               HStack {
-                Image(systemName: !eventsVM.hiddenCalendarIDs.contains(calendar.id) ? "checkmark.circle.fill" : "circle")
+                Image(systemName: !eventsVM.hiddenCalendarIDs.contains(calendar.id) ? "checkmark.square.fill" : "square")
                   .foregroundStyle(calendar.color)
                   .font(.title3)
                 Text(calendar.title)
-                  .font(.system(size: 13, weight: .regular))
+                  .font(.system(size: 15, weight: .regular))
                   .foregroundStyle(.primary)
                 Spacer()
               }
@@ -109,8 +110,8 @@ struct CalendarListView: View {
       }
       .padding(.vertical, 4)
     }
+    .frame(maxHeight: appVM.appHeight * 0.7)
     .fixedSize(horizontal: false, vertical: true)
-    .frame(maxHeight: ViewConstants.appHeight * 0.7)
     .task {
       await eventsVM.fetchCalendars()
     }

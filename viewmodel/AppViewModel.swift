@@ -7,6 +7,7 @@
 
 import Foundation
 import EventKit
+import AppKit
 
 enum ChangeSource {
   case none, dayScroll, monthScroll, weekScroll, external
@@ -24,8 +25,21 @@ enum CalendarViewMode: Hashable {
 class AppViewModel: Identifiable {
 
   let calendar = Calendar.current
-  
+
   var changeSource: ChangeSource = .none
+
+  // Live popover height, scaled to whichever display the popover opens on.
+  // Every height frame reads this single value so they always agree.
+  var appHeight: CGFloat = ViewConstants.appHeight
+
+  func updateAppHeight(for screen: NSScreen?) {
+    let visibleHeight = (screen ?? NSScreen.main)?.visibleFrame.height ?? 900
+    let height = min(
+      max(visibleHeight * ViewConstants.appHeightFraction, ViewConstants.minAppHeight),
+      ViewConstants.maxAppHeight
+    )
+    if height != appHeight { appHeight = height }
+  }
 
   var activeOverlay: OverlayMode = .none
 
@@ -48,9 +62,9 @@ class AppViewModel: Identifiable {
   func getCalendarViewSymbol() -> String {
     switch selectedCalendarView {
     case .month:
-      return "square"
+      return "31.square"
     case .week:
-      return "rectangle"
+      return "7.square"
     }
   }
 
