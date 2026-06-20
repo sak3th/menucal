@@ -100,18 +100,10 @@ struct CalView: View {
       return .handled
     }
     .onKeyPress(keys: [",", "."]) { press in
-      if appVM.selectedCalendarView == .week {
-        if press.characters == "," {
-          appVM.goToPrevWeek()
-        } else if press.characters == "." {
-          appVM.goToNextWeek()
-        }
-      } else {
-        if press.characters == "," {
-          appVM.goToPrevMonth()
-        } else if press.characters == "." {
-          appVM.goToNextMonth()
-        }
+      if press.characters == "," {
+        appVM.goToPrevWeek()
+      } else if press.characters == "." {
+        appVM.goToNextWeek()
       }
       return .handled
     }
