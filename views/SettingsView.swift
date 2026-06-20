@@ -72,22 +72,24 @@ struct SettingsView: View {
 
           // MARK: Keyboard Shortcuts
           SettingsSection("Keyboard Shortcuts") {
-            VStack(alignment: .leading, spacing: 7) {
-              ForEach(Self.shortcuts, id: \.keys) { shortcut in
-                HStack(alignment: .firstTextBaseline, spacing: 10) {
-                  Text(shortcut.keys)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(.primary)
-                    .frame(width: 70, alignment: .leading)
+            VStack(alignment: .leading, spacing: 10) {
+              ForEach(Self.shortcuts, id: \.desc) { shortcut in
+                HStack(spacing: 10) {
+                  HStack(spacing: 4) {
+                    ForEach(shortcut.keys, id: \.self) { key in
+                      KeyCap(label: key)
+                    }
+                  }
+                  .frame(width: 96, alignment: .leading)
                   Text(shortcut.desc)
-                    .font(.system(size: 12, weight: .light))
+                    .font(.system(size: 13))
                     .foregroundStyle(.secondary)
                   Spacer(minLength: 0)
                 }
               }
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.vertical, 12)
           }
         }
         .padding(14)
@@ -109,15 +111,33 @@ struct SettingsView: View {
     }
   }
 
-  private static let shortcuts: [(keys: String, desc: String)] = [
-    ("← / →", "Previous / next day"),
-    ("⌥ ← / →", "Previous / next month"),
-    (", / .", "Previous / next (or week)"),
-    ("T", "Jump to today"),
-    ("M", "Toggle Month / Week"),
-    ("E", "Toggle Timeline / List"),
-    ("Esc", "Close detail or menu"),
+  private static let shortcuts: [(keys: [String], desc: String)] = [
+    (["←", "→"], "Previous / next day"),
+    (["⌥", "←", "→"], "Previous / next month"),
+    ([",", "."], "Previous / next week"),
+    (["T"], "Jump to today"),
+    (["M"], "Toggle Month / Week"),
+    (["E"], "Toggle Timeline / List"),
+    (["esc"], "Close detail or menu"),
   ]
+}
+
+private struct KeyCap: View {
+  let label: String
+
+  var body: some View {
+    Text(label)
+      .font(.system(size: 11, weight: .medium, design: .rounded))
+      .foregroundStyle(.primary)
+      .frame(minWidth: 14)
+      .padding(.horizontal, 6)
+      .padding(.vertical, 4)
+      .background(Color.primary.opacity(0.10), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+      .overlay(
+        RoundedRectangle(cornerRadius: 6, style: .continuous)
+          .strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5)
+      )
+  }
 }
 
 // MARK: - Building blocks
