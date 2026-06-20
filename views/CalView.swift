@@ -26,13 +26,14 @@ struct CalView: View {
 
         Group {
           if appVM.selectedEventsView == .timeline {
-            PagedDayTimelineView()
+            PagedDayTimelineView().transition(.blurReplace)
           } else {
-            EventsView()
+            EventsView().transition(.blurReplace)
           }
         }
         .frame(minHeight: appVM.appHeight * 0.3)
         .padding(.horizontal, ViewConstants.padding)
+        .animation(.smooth(duration: 0.3), value: appVM.selectedEventsView)
       }
       .padding(.top, ViewConstants.padding)
       .frame(width: ViewConstants.appWidth)

@@ -144,15 +144,19 @@ struct Toolbar: View {
       Group {
         Button(action: onExpandEventsMenu) {
           Image(systemName: appVM.getEventsViewSymbol())
+            .contentTransition(.symbolEffect(.replace))
             .toolbarIcon()
             .padding(6)
+            .animation(.smooth(duration: 0.3), value: appVM.selectedEventsView)
         }
         .interactiveButtonBackground()
 
         Button(action: onExpandCalendarViewMenu) {
           Image(systemName: appVM.getCalendarViewSymbol())
+            .contentTransition(.symbolEffect(.replace))
             .toolbarIcon()
             .padding(6)
+            .animation(.smooth(duration: 0.3), value: appVM.selectedCalendarView)
         }
         .interactiveButtonBackground()
 
