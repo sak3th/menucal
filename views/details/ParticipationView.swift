@@ -39,7 +39,7 @@ struct ChangeResponseView: View {
   var body: some View {
       DetailSection {
         HStack {
-          Text("My status").fontWeight(.light)
+          Text("My status").fontWeight(.regular)
           Picker("My status", selection: $selectedStatus) {
             ForEach([ParticipationStatus.accepted, .tentative, .declined], id: \.self) { status in
               Label {

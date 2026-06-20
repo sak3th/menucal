@@ -15,16 +15,16 @@ struct EventTimeView: View {
       Spacer().frame(height: 16)
       
       Text(formatDate(event.startTime))
-        .font(.subheadline)
+        .font(.system(size: 13))
         .foregroundStyle(.primary)
 
       Text("\(formatTime(event.startTime)) - \(formatTime(event.endTime))")
-        .font(.subheadline)
+        .font(.system(size: 13))
         .foregroundStyle(.primary)
 
       if let recurrence = event.recurrenceRule {
         Text(recurrence.description)
-          .font(.subheadline)
+          .font(.system(size: 13))
           .foregroundStyle(.red)
       }
     }

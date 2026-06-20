@@ -32,18 +32,16 @@ struct SettingsView: View {
             }
 
             if settings.addEventAction == .webApp {
-              VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 6) {
-                  TextField("/Applications/GCal.app", text: $settings.webAppPath)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 12))
-                  Button("Choose…") { chooseWebApp() }
-                    .font(.system(size: 12))
-                    .buttonStyle(.borderless)
-                }
-                Text("Leave blank to auto-detect a Google Calendar web app.")
-                  .font(.system(size: 10))
-                  .foregroundStyle(.tertiary)
+              HStack(spacing: 8) {
+                Text(webAppDisplayName)
+                  .font(.system(size: 12))
+                  .foregroundStyle(settings.webAppPath.isEmpty ? .tertiary : .secondary)
+                  .lineLimit(1)
+                  .truncationMode(.middle)
+                Spacer(minLength: 0)
+                Button("Choose") { chooseWebApp() }
+                  .font(.system(size: 12))
+                  .buttonStyle(.borderless)
               }
               .padding(.horizontal, 12)
               .padding(.vertical, 8)
@@ -74,29 +72,37 @@ struct SettingsView: View {
           SettingsSection("Keyboard Shortcuts") {
             VStack(alignment: .leading, spacing: 10) {
               ForEach(Self.shortcuts, id: \.desc) { shortcut in
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                   HStack(spacing: 4) {
                     ForEach(shortcut.keys, id: \.self) { key in
                       KeyCap(label: key)
                     }
                   }
-                  .frame(width: 96, alignment: .leading)
+                  .frame(width: 80, alignment: .leading)
                   Text(shortcut.desc)
                     .font(.system(size: 13))
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
                   Spacer(minLength: 0)
                 }
               }
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 10)
             .padding(.vertical, 12)
           }
         }
-        .padding(14)
+        .padding(12)
         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
       }
       .frame(height: min(contentHeight == 0 ? maxContentHeight : contentHeight, maxContentHeight))
       .scrollIndicators(.hidden)
+  }
+
+  private var webAppDisplayName: String {
+    let path = settings.webAppPath.trimmingCharacters(in: .whitespaces)
+    guard !path.isEmpty else { return "Auto-detect" }
+    return URL(fileURLWithPath: path).lastPathComponent
   }
 
   private func chooseWebApp() {
@@ -112,9 +118,9 @@ struct SettingsView: View {
   }
 
   private static let shortcuts: [(keys: [String], desc: String)] = [
-    (["←", "→"], "Previous / next day"),
-    (["⌥", "←", "→"], "Previous / next month"),
-    ([",", "."], "Previous / next week"),
+    (["←", "→"], "Previous, next day"),
+    (["⌥", "←", "→"], "Previous, next month"),
+    ([",", "."], "Previous, next week"),
     (["T"], "Jump to today"),
     (["M"], "Toggle Month / Week"),
     (["E"], "Toggle Timeline / List"),

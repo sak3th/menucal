@@ -17,14 +17,14 @@ struct CalendarSectionView: View {
       DetailSection {
         HStack(alignment: .center, spacing: 0) {
           Text("Calendar")
-            .fontWeight(.light)
+            .fontWeight(.regular)
             .singleLineCenteredText()
           
           Spacer()
           
           Label {
             Text(event.calendarTitle)
-              .font(.system(size: 12, weight: .light))
+              .font(.system(size: 12, weight: .regular))
               .offset(x: -2.0)
           } icon: {
             Circle()

@@ -24,7 +24,7 @@ struct VideoCallView: View {
           
           HStack(alignment: .center, spacing: 8) {
             Text(event.meetingProvider)
-              .fontWeight(.light)
+              .fontWeight(.regular)
               .singleLineCenteredText()
             
             Spacer()

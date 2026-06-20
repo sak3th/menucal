@@ -63,7 +63,13 @@ struct PagedMonthView: View {
             }
           }
           .onAppear {
+            // Suppress onMonthScrolled while the initial scroll settles, so
+            // appearing (e.g. toggling to month view) doesn't reset the date.
+            isProgrammaticScroll = true
             proxy.scrollTo(appVM.selectedMonth, anchor: .center)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+              isProgrammaticScroll = false
+            }
           }
         }
         .frame(height: containerHeight)

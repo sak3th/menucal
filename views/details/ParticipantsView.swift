@@ -109,7 +109,7 @@ private struct ParticipantRow: View {
   var body: some View {
     Label {
       Text(participant.displayName)
-        .font(.system(size: 12, weight: .light))
+        .font(.system(size: 12, weight: .regular))
         .truncationMode(.tail)
         .offset(x: -4.0)
         .singlelineText()

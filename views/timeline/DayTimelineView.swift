@@ -375,11 +375,7 @@ struct PagedDayTimelineView: View {
     VStack(spacing: 0) {
       if !allDayVM.allDayEvents.isEmpty {
         VStack(spacing: 0) {
-          ForEach(allDayVM.allDayEvents) { event in
-            DayEventView(event: event)
-              .padding(.horizontal, 8)
-              .padding(.vertical, 4)
-          }
+          AllDayEventsList(events: allDayVM.allDayEvents)
           Divider().opacity(0.5)
         }
       }
@@ -432,6 +428,8 @@ struct PagedDayTimelineView: View {
           .scrollPosition(id: $scrollPosition)
           .frame(height: totalTimelineHeight)
         }
+        // Top inset so the 12 AM label isn't clipped at the viewport edge.
+        .padding(.top, 10)
       }
       .scrollIndicators(.hidden)
       .onAppear {

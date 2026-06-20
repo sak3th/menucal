@@ -110,6 +110,26 @@ struct EventsView: View {
   }
 }
 
+// Shared all-day events list, used by both the events list and the timeline
+// so they render identically.
+struct AllDayEventsList: View {
+  let events: [Event]
+
+  var body: some View {
+    ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
+      VStack(spacing: 0) {
+        if !event.isUnaccepted && (index == 0 || !events[index - 1].isUnaccepted) {
+          Divider().opacity(0.5)
+        }
+        Spacer().frame(height: 6)
+        DayEventView(event: event)
+          .padding(.horizontal, 8)
+        Spacer().frame(height: 6)
+      }
+    }
+  }
+}
+
 struct SingleDayEventsView: View {
   let date: Date
   let hiddenCalendarIDs: Set<String>
@@ -125,18 +145,7 @@ struct SingleDayEventsView: View {
       } else {
         VStack(alignment: .center, spacing: 0) {
           if !viewModel.allDayEvents.isEmpty {
-            let allDayEvents = viewModel.allDayEvents
-            ForEach(Array(allDayEvents.enumerated()), id: \.element.id) { index, event in
-              VStack(spacing: 0) {
-                if !event.isUnaccepted && (index == 0 || !allDayEvents[index - 1].isUnaccepted) {
-                  Divider().opacity(0.5)
-                }
-                Spacer().frame(height: 8)
-                DayEventView(event: event)
-                  .padding(.horizontal, 8)
-                Spacer().frame(height: 8)
-              }
-            }
+            AllDayEventsList(events: viewModel.allDayEvents)
           }
           
           if !viewModel.events.isEmpty {
