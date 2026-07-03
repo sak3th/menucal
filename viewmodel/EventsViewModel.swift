@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import EventKit
 
 @Observable
 class EventsViewModel {
@@ -15,16 +16,36 @@ class EventsViewModel {
       UserDefaults.standard.set(Array(hiddenCalendarIDs), forKey: "hiddenCalendarIDs")
     }
   }
-  
+
   var calendars: [CalendarInfo] = []
   var isRefreshing: Bool = false
+  // Bumped whenever underlying data may have changed; day views re-fetch on it.
   var refreshTick: Int = 0
 
   private let calendarService: CalendarService = AppleCalendarService()
-  
+  private var storeChangedObserver: NSObjectProtocol?
+
   init() {
     if let saved = UserDefaults.standard.array(forKey: "hiddenCalendarIDs") as? [String] {
       hiddenCalendarIDs = Set(saved)
+    }
+
+    // EventKit syncs sources asynchronously; when fresh data actually lands
+    // (or an external edit occurs) it posts .EKEventStoreChanged. Re-fetch
+    // then, rather than guessing with a fixed delay after refreshSources.
+    storeChangedObserver = NotificationCenter.default.addObserver(
+      forName: .EKEventStoreChanged, object: nil, queue: .main
+    ) { [weak self] _ in
+      Task { @MainActor in
+        self?.refreshTick &+= 1
+        await self?.fetchCalendars()
+      }
+    }
+  }
+
+  deinit {
+    if let storeChangedObserver {
+      NotificationCenter.default.removeObserver(storeChangedObserver)
     }
   }
   
