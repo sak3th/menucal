@@ -14,6 +14,7 @@ struct MenuCalApp: App {
   @State private var appViewModel = AppViewModel()
   @State private var eventsViewModel = EventsViewModel()
   @State private var settingsViewModel = SettingsViewModel.shared
+  @State private var didRegisterObservers = false
 
   var body: some Scene {
       MenuBarExtra {
@@ -34,24 +35,32 @@ struct MenuCalApp: App {
                 await eventsViewModel.refreshAll()
               }
             }
-            NotificationCenter.default.addObserver(
-              forName: NSWindow.didBecomeKeyNotification,
-              object: nil,
-              queue: .main
-            ) { note in
-              // Resize to whichever display the popover opened on.
-              appViewModel.updateAppHeight(for: (note.object as? NSWindow)?.screen, fraction: settingsViewModel.fraction)
-              appViewModel.handleWindowBecameKey(resetToToday: settingsViewModel.resetToTodayOnReopen)
-              if permViewModel.hasPermissions() {
-                Task { await eventsViewModel.refreshAll() }
+            // Register global observers once — .onAppear can run per popover
+            // open, and re-registering would stack duplicate handlers.
+            if !didRegisterObservers {
+              didRegisterObservers = true
+              NotificationCenter.default.addObserver(
+                forName: NSWindow.didBecomeKeyNotification,
+                object: nil,
+                queue: .main
+              ) { note in
+                // Only react to the popover window (~appWidth), not menus,
+                // panels, or the file picker also becoming key.
+                guard let window = note.object as? NSWindow,
+                      abs(window.frame.width - ViewConstants.appWidth) < 80 else { return }
+                appViewModel.updateAppHeight(for: window.screen, fraction: settingsViewModel.fraction)
+                appViewModel.handleWindowBecameKey(resetToToday: settingsViewModel.resetToTodayOnReopen)
+                if permViewModel.hasPermissions() {
+                  Task { await eventsViewModel.refreshAll() }
+                }
               }
-            }
-            NotificationCenter.default.addObserver(
-              forName: NSApplication.didChangeScreenParametersNotification,
-              object: nil,
-              queue: .main
-            ) { _ in
-              appViewModel.updateAppHeight(for: NSApp.keyWindow?.screen, fraction: settingsViewModel.fraction)
+              NotificationCenter.default.addObserver(
+                forName: NSApplication.didChangeScreenParametersNotification,
+                object: nil,
+                queue: .main
+              ) { _ in
+                appViewModel.updateAppHeight(for: NSApp.keyWindow?.screen, fraction: settingsViewModel.fraction)
+              }
             }
           }
           .onChange(of: permViewModel.hasCalendarPermission) {

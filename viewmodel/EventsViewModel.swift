@@ -24,6 +24,7 @@ class EventsViewModel {
 
   private let calendarService: CalendarService = AppleCalendarService()
   private var storeChangedObserver: NSObjectProtocol?
+  private var refreshTimeoutTask: Task<Void, Never>?
 
   init() {
     if let saved = UserDefaults.standard.array(forKey: "hiddenCalendarIDs") as? [String] {
@@ -37,8 +38,10 @@ class EventsViewModel {
       forName: .EKEventStoreChanged, object: nil, queue: .main
     ) { [weak self] _ in
       Task { @MainActor in
-        self?.refreshTick &+= 1
-        await self?.fetchCalendars()
+        guard let self else { return }
+        self.stopRefreshing()
+        self.refreshTick &+= 1
+        await self.fetchCalendars()
       }
     }
   }
@@ -48,14 +51,32 @@ class EventsViewModel {
       NotificationCenter.default.removeObserver(storeChangedObserver)
     }
   }
-  
+
+  @MainActor
   func refreshAll() async {
+    // Already syncing — skip redundant refreshes (e.g. repeated window-key
+    // events) until the current one resolves.
+    guard !isRefreshing else { return }
     isRefreshing = true
     calendarService.refreshData()
     await fetchCalendars()
-    try? await Task.sleep(for: .seconds(1))
-    isRefreshing = false
     refreshTick &+= 1
+
+    // Keep the spinner up until fresh data actually lands
+    // (.EKEventStoreChanged stops it), capped at 60s so it can't spin forever.
+    refreshTimeoutTask?.cancel()
+    refreshTimeoutTask = Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(60))
+      guard !Task.isCancelled else { return }
+      self?.isRefreshing = false
+    }
+  }
+
+  @MainActor
+  private func stopRefreshing() {
+    refreshTimeoutTask?.cancel()
+    refreshTimeoutTask = nil
+    isRefreshing = false
   }
   
   func fetchCalendars() async {
