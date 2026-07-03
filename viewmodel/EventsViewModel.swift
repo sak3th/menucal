@@ -25,6 +25,11 @@ class EventsViewModel {
   private let calendarService: CalendarService = AppleCalendarService()
   private var storeChangedObserver: NSObjectProtocol?
   private var refreshTimeoutTask: Task<Void, Never>?
+  private var refreshStartedAt: Date?
+  // Store-changed notifications within this window of a refresh are treated as
+  // the initial local store load, not a completed network sync, so they
+  // re-fetch but don't stop the spinner.
+  private let refreshGrace: TimeInterval = 2
 
   init() {
     if let saved = UserDefaults.standard.array(forKey: "hiddenCalendarIDs") as? [String] {
@@ -39,9 +44,14 @@ class EventsViewModel {
     ) { [weak self] _ in
       Task { @MainActor in
         guard let self else { return }
-        self.stopRefreshing()
         self.refreshTick &+= 1
         await self.fetchCalendars()
+        // Stop the spinner only once we're past the grace window (a real
+        // server sync); ignore the early store-load notification.
+        if let started = self.refreshStartedAt,
+           Date().timeIntervalSince(started) >= self.refreshGrace {
+          self.stopRefreshing()
+        }
       }
     }
   }
@@ -58,6 +68,7 @@ class EventsViewModel {
     // events) until the current one resolves.
     guard !isRefreshing else { return }
     isRefreshing = true
+    refreshStartedAt = Date()
     calendarService.refreshData()
     await fetchCalendars()
     refreshTick &+= 1
@@ -68,7 +79,7 @@ class EventsViewModel {
     refreshTimeoutTask = Task { @MainActor [weak self] in
       try? await Task.sleep(for: .seconds(60))
       guard !Task.isCancelled else { return }
-      self?.isRefreshing = false
+      self?.stopRefreshing()
     }
   }
 
@@ -76,6 +87,7 @@ class EventsViewModel {
   private func stopRefreshing() {
     refreshTimeoutTask?.cancel()
     refreshTimeoutTask = nil
+    refreshStartedAt = nil
     isRefreshing = false
   }
   
