@@ -296,16 +296,26 @@ struct DayTimelineContent: View {
     }
 
     // 4. Flat packColumns + expand-to-fill across the full width, on top (z=1);
-    //    blockers reserve column space but are never drawn.
+    //    blockers reserve column space but are never drawn. Events that sit on
+    //    top of a background are nudged right by `foregroundInset` (right edge
+    //    preserved) so the background's left color strip stays visible and the
+    //    foreground/background strips don't overlap.
+    let foregroundInset: CGFloat = 8
     for cluster in overlapClusters(foreground) {
       let (packed, colCount) = packColumns(cluster)
       let colWidth = availableWidth / CGFloat(max(colCount, 1))
       for item in cluster where !(item is Blocker) {
         let (c, span) = packed[item.intervalID] ?? (0, 1)
+        var x = CGFloat(c) * colWidth
+        var width = colWidth * CGFloat(span) - 2
+        if let ev = item as? Event, backgrounds.contains(where: { overlaps($0, ev) }) {
+          x += foregroundInset
+          width -= foregroundInset
+        }
         frames[item.intervalID] = LayoutFrame(
-          x: CGFloat(c) * colWidth,
+          x: x,
           y: yPosition(for: item.intervalStart),
-          width: colWidth * CGFloat(span) - 2,
+          width: width,
           height: heightFor(start: item.intervalStart, end: item.intervalEnd),
           zIndex: 1
         )
