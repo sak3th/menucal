@@ -23,11 +23,13 @@ enum AddEventAction: String, CaseIterable {
 
 enum TimelineLayout: String, CaseIterable {
   case nested
+  case layers
   case columns
 
   var label: String {
     switch self {
     case .nested: return "Nested"
+    case .layers: return "Layers"
     case .columns: return "Columns"
     }
   }
