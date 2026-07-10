@@ -252,19 +252,27 @@ struct DayTimelineContent: View {
 
   // MARK: - Layers (background + foreground) layout
 
-  // Two-layer Google/Apple-style layout: long hosts become faded full-width
-  // background bands behind everything (z=0); every other event is laid out
-  // flat across the full width on top (z=1). Each background contributes a
-  // title-strip blocker to the foreground column layout so overlapping events
-  // (e.g. a same-start sibling) can't cover the host's title. Multi-level
-  // nesting (background-within-background) is out of scope.
+  // Two-layer Google/Apple-style layout: pure-envelope hosts become faded
+  // full-width background bands behind everything (z=0); every other event is
+  // laid out flat across the full width on top (z=1). Each background
+  // contributes a title-strip blocker to the foreground column layout so
+  // overlapping events (e.g. a same-start sibling) can't cover the host's
+  // title. Multi-level nesting (background-within-background) is out of scope.
   private func layoutLayers(events: [Event], availableWidth: CGFloat) -> [String: LayoutFrame] {
     var frames: [String: LayoutFrame] = [:]
 
-    // 1. Backgrounds: long enough AND hosting ≥1 title-cleared event.
+    // 1. Backgrounds: an event that hosts ≥1 title-cleared event AND is a *pure
+    //    envelope* — every event overlapping it is fully contained within it, so
+    //    nothing pokes out as a side-by-side peer. This (not duration) is what
+    //    separates an all-day OOO backdrop from an ordinary long meeting that
+    //    merely overlaps its neighbours: the latter has a peer sticking out and
+    //    belongs in side-by-side columns instead.
     let backgrounds = events.filter { bg in
-      bg.endTime.timeIntervalSince(bg.startTime) >= backgroundMinDuration
-        && events.contains { $0.id != bg.id && hosts(bg, $0) }
+      let hostsAChild = events.contains { $0.id != bg.id && hosts(bg, $0) }
+      let isPureEnvelope = events.allSatisfy { other in
+        other.id == bg.id || !overlaps(bg, other) || contains(bg, other)
+      }
+      return hostsAChild && isPureEnvelope
     }
     let backgroundIDs = Set(backgrounds.map(\.id))
 
@@ -311,6 +319,15 @@ struct DayTimelineContent: View {
   // if X ends after B). Starts too close to B's start → not hosted → column.
   private func hosts(_ b: Event, _ x: Event) -> Bool {
     b.startTime.addingTimeInterval(titleClearance) <= x.startTime && x.startTime < b.endTime
+  }
+
+  // Time-overlap and full-containment predicates (used by Layers classification).
+  private func overlaps(_ a: Event, _ b: Event) -> Bool {
+    a.startTime < b.endTime && b.startTime < a.endTime
+  }
+
+  private func contains(_ outer: Event, _ inner: Event) -> Bool {
+    outer.startTime <= inner.startTime && inner.endTime <= outer.endTime
   }
 
   private func tightestHost(of x: Event, among candidates: [Event]) -> Event? {
