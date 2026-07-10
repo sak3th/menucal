@@ -17,7 +17,7 @@ enum OverlayMode: Hashable {
   case none, eventsMenu, calendarViewMenu, calendarList, settings
 }
 
-enum CalendarViewMode: Hashable {
+enum CalendarViewMode: String, Hashable {
   case month, week
 }
 
@@ -47,8 +47,12 @@ class AppViewModel: Identifiable {
     activeOverlay = .none
   }
 
-  var selectedEventsView: CalViewMode = .timeline
-  var selectedCalendarView: CalendarViewMode = .month
+  var selectedEventsView: CalViewMode = .timeline {
+    didSet { UserDefaults.standard.set(selectedEventsView.rawValue, forKey: "selectedEventsView") }
+  }
+  var selectedCalendarView: CalendarViewMode = .month {
+    didSet { UserDefaults.standard.set(selectedCalendarView.rawValue, forKey: "selectedCalendarView") }
+  }
 
   func getEventsViewSymbol() -> String {
     switch selectedEventsView {
@@ -97,6 +101,15 @@ class AppViewModel: Identifiable {
     lastKnownToday = todayStart
     changeSource = .external
     selectedEvent = nil
+
+    // Restore the last-used views.
+    let defaults = UserDefaults.standard
+    if let raw = defaults.string(forKey: "selectedEventsView"), let v = CalViewMode(rawValue: raw) {
+      selectedEventsView = v
+    }
+    if let raw = defaults.string(forKey: "selectedCalendarView"), let v = CalendarViewMode(rawValue: raw) {
+      selectedCalendarView = v
+    }
 
     dayChangeObserver = NotificationCenter.default.addObserver(
       forName: .NSCalendarDayChanged,
@@ -277,6 +290,6 @@ class AppViewModel: Identifiable {
 }
 
 
-enum CalViewMode: Hashable {
+enum CalViewMode: String, Hashable {
   case timeline, list
 }
