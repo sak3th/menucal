@@ -21,6 +21,18 @@ enum AddEventAction: String, CaseIterable {
   }
 }
 
+enum TimelineLayout: String, CaseIterable {
+  case nested
+  case columns
+
+  var label: String {
+    switch self {
+    case .nested: return "Nested"
+    case .columns: return "Columns"
+    }
+  }
+}
+
 enum WindowSize: String, CaseIterable {
   case small
   case medium
@@ -64,6 +76,10 @@ class SettingsViewModel {
     didSet { UserDefaults.standard.set(windowSize.rawValue, forKey: "windowSize") }
   }
 
+  var timelineLayout: TimelineLayout {
+    didSet { UserDefaults.standard.set(timelineLayout.rawValue, forKey: "timelineLayout") }
+  }
+
   var resetToTodayOnReopen: Bool {
     didSet { UserDefaults.standard.set(resetToTodayOnReopen, forKey: "resetToTodayOnReopen") }
   }
@@ -94,6 +110,7 @@ class SettingsViewModel {
     webAppPath = defaults.string(forKey: "webAppPath") ?? ""
     dismissAfterJoin = defaults.object(forKey: "dismissAfterJoin") as? Bool ?? true
     windowSize = WindowSize(rawValue: defaults.string(forKey: "windowSize") ?? "") ?? .medium
+    timelineLayout = TimelineLayout(rawValue: defaults.string(forKey: "timelineLayout") ?? "") ?? .nested
     resetToTodayOnReopen = defaults.object(forKey: "resetToTodayOnReopen") as? Bool ?? false
     launchAtLogin = (SMAppService.mainApp.status == .enabled)
   }

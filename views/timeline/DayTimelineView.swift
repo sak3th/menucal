@@ -11,6 +11,7 @@ struct DayTimelineContent: View {
   let date: Date
   @Environment(AppViewModel.self) private var appVM
   @Environment(EventsViewModel.self) private var eventsVM
+  @Environment(SettingsViewModel.self) private var settings
   @State private var viewModel = DayEventsViewModel()
   @State private var currentTimeViewHeight: CGFloat = 0
 
@@ -19,6 +20,12 @@ struct DayTimelineContent: View {
   private let timeColumnWidth: CGFloat = 42 // Space for hour labels
   private let minVisualDuration: TimeInterval = 10 * 60 // 10 minutes minimum visual duration
   private let eventVerticalPadding: CGFloat = 1
+  // A contained event must start at least this far below its container so the
+  // container's title stays visible; closer starts fall back to columns.
+  private let titleClearance: TimeInterval = 18 * 60
+  // Only hosts at least this long render as a faded background band; shorter
+  // hosts (a normal meeting that happens to host an overlap) keep normal styling.
+  private let backgroundMinDuration: TimeInterval = 3 * 3600
 
   var body: some View {
     ZStack(alignment: .topLeading) {
@@ -32,15 +39,14 @@ struct DayTimelineContent: View {
         let totalWidth = geometry.size.width
         let availableWidth = totalWidth - timeColumnWidth
 
-        // Calculate Layout
-        let layoutFrames = calculateLayout(
-          events: viewModel.events,
-          availableWidth: availableWidth
-        )
+        // Calculate Layout — nested (containment) or plain columns per setting.
+        let layoutFrames = settings.timelineLayout == .nested
+          ? layoutNested(events: viewModel.events, availableWidth: availableWidth)
+          : calculateLayout(events: viewModel.events, availableWidth: availableWidth)
 
         ForEach(viewModel.events) { event in
           if let frame = layoutFrames[event.id] {
-            DayEventCard(event: event)
+            DayEventCard(event: event, isBackground: frame.isBackground)
               .frame(width: frame.width, height: frame.height)
               .position(
                 x: timeColumnWidth + frame.x + frame.width / 2 ,
@@ -84,6 +90,7 @@ struct DayTimelineContent: View {
     let width: CGFloat
     let height: CGFloat
     let zIndex: Double
+    var isBackground: Bool = false
   }
 
   // Standard calendar interval-partitioning layout:
@@ -124,43 +131,183 @@ struct DayTimelineContent: View {
       clusters.append(currentCluster)
     }
 
-    // 3. Within each cluster, assign each event the leftmost free column
+    // 3. Within each cluster, assign columns and expand-to-fill (shared helper).
     for cluster in clusters {
-      var columns: [[Event]] = []
-      var columnIndex: [String: Int] = [:]
+      let (packed, colCount) = packColumns(cluster)
+      let columnWidth = availableWidth / CGFloat(colCount)
 
       for event in cluster {
-        var placed = false
-        for (colIndex, column) in columns.enumerated() {
-          if let last = column.last, visualEnd(last) <= event.startTime {
-            columns[colIndex].append(event)
-            columnIndex[event.id] = colIndex
-            placed = true
-            break
-          }
-        }
-        if !placed {
-          columns.append([event])
-          columnIndex[event.id] = columns.count - 1
-        }
-      }
+        let (c, span) = packed[event.id] ?? (0, 1)
 
-      let columnWidth = availableWidth / CGFloat(columns.count)
-
-      for event in cluster {
         let y = yPosition(for: event.startTime)
 
         let rawDuration = event.endTime.timeIntervalSince(event.startTime)
         let visualDuration = max(rawDuration, minVisualDuration)
         let height = (CGFloat(visualDuration / 3600.0) * hourSpacing) - eventVerticalPadding
 
-        let x = CGFloat(columnIndex[event.id] ?? 0) * columnWidth
+        let x = CGFloat(c) * columnWidth
+        let width = columnWidth * CGFloat(span) - 2
 
-        frames[event.id] = LayoutFrame(x: x, y: y, width: columnWidth - 2, height: height, zIndex: 0)
+        frames[event.id] = LayoutFrame(x: x, y: y, width: width, height: height, zIndex: 0)
       }
     }
 
     return frames
+  }
+
+  // MARK: - Nested (containment-forest) layout
+
+  // Google/Apple-style layout: an event that *contains* others (with title
+  // clearance) is drawn full-width behind them; the contained events render on
+  // top; events that only partially overlap go side-by-side in columns.
+  private func layoutNested(events: [Event], availableWidth: CGFloat) -> [String: LayoutFrame] {
+    var frames: [String: LayoutFrame] = [:]
+    for cluster in overlapClusters(events) {
+      // Build a containment forest: each event's parent is its tightest host
+      // among *all* events in the cluster (hosting isn't transitive, so this
+      // must consider every event, not just the roots).
+      var childrenOf: [String: [Event]] = [:]
+      var hasParent: Set<String> = []
+      for e in cluster {
+        if let parent = tightestHost(of: e, among: cluster) {
+          childrenOf[parent.id, default: []].append(e)
+          hasParent.insert(e.id)
+        }
+      }
+      let roots = cluster.filter { !hasParent.contains($0.id) }
+      layoutSiblings(roots, childrenOf: childrenOf,
+                     regionX: 0, regionWidth: availableWidth, depth: 0, into: &frames)
+    }
+    return frames
+  }
+
+  // Lay out a set of siblings (children of one node, or the roots) within a
+  // region, then recurse into each node's own children.
+  private func layoutSiblings(
+    _ siblings: [Event], childrenOf: [String: [Event]],
+    regionX: CGFloat, regionWidth: CGFloat, depth: Int,
+    into frames: inout [String: LayoutFrame]
+  ) {
+    guard !siblings.isEmpty else { return }
+    let inset: CGFloat = 6
+
+    // Non-overlapping siblings each keep full width; overlapping ones share
+    // columns and expand-to-fill.
+    for cluster in overlapClusters(siblings) {
+      let (packed, colCount) = packColumns(cluster)
+      let colWidth = regionWidth / CGFloat(max(colCount, 1))
+      for node in cluster {
+        let (ci, span) = packed[node.id] ?? (0, 1)
+        let rx = regionX + CGFloat(ci) * colWidth
+        let rw = colWidth * CGFloat(span)
+        let kids = childrenOf[node.id] ?? []
+        let isBackground = !kids.isEmpty
+          && node.endTime.timeIntervalSince(node.startTime) >= backgroundMinDuration
+        frames[node.id] = LayoutFrame(
+          x: rx, y: yPosition(for: node.startTime),
+          width: rw - 2, height: heightFor(node),
+          zIndex: Double(depth), isBackground: isBackground
+        )
+        if !kids.isEmpty {
+          layoutSiblings(kids, childrenOf: childrenOf,
+                         regionX: rx + inset, regionWidth: rw - inset,
+                         depth: depth + 1, into: &frames)
+        }
+      }
+    }
+  }
+
+  // X starts within B's span, below B's title — so X nests on top of B (even
+  // if X ends after B). Starts too close to B's start → not hosted → column.
+  private func hosts(_ b: Event, _ x: Event) -> Bool {
+    b.startTime.addingTimeInterval(titleClearance) <= x.startTime && x.startTime < b.endTime
+  }
+
+  private func tightestHost(of x: Event, among candidates: [Event]) -> Event? {
+    var best: Event?
+    for c in candidates where c.id != x.id && hosts(c, x) {
+      if let b = best {
+        // Tightest = latest start, then earliest end.
+        if c.startTime > b.startTime || (c.startTime == b.startTime && c.endTime < b.endTime) {
+          best = c
+        }
+      } else {
+        best = c
+      }
+    }
+    return best
+  }
+
+  // Greedy leftmost-free-column packing + expand-to-fill: returns each event's
+  // column index and how many columns it spans (widening into consecutive
+  // right-hand columns that are free for its whole span), plus the total count.
+  private func packColumns(_ events: [Event]) -> (layout: [String: (col: Int, span: Int)], count: Int) {
+    let sorted = events.sorted {
+      $0.startTime != $1.startTime
+        ? $0.startTime < $1.startTime
+        : $0.endTime.timeIntervalSince($0.startTime) > $1.endTime.timeIntervalSince($1.startTime)
+    }
+    var columns: [[Event]] = []
+    var colOf: [String: Int] = [:]
+    for e in sorted {
+      var placed = false
+      for i in columns.indices {
+        if let last = columns[i].last, visualEnd(last) <= e.startTime {
+          columns[i].append(e); colOf[e.id] = i; placed = true; break
+        }
+      }
+      if !placed { columns.append([e]); colOf[e.id] = columns.count - 1 }
+    }
+
+    var layout: [String: (col: Int, span: Int)] = [:]
+    for e in sorted {
+      let c = colOf[e.id] ?? 0
+      var span = 1
+      var k = c + 1
+      while k < columns.count {
+        let occupied = columns[k].contains { other in
+          other.startTime < visualEnd(e) && e.startTime < visualEnd(other)
+        }
+        if occupied { break }
+        span += 1
+        k += 1
+      }
+      layout[e.id] = (c, span)
+    }
+    return (layout, columns.count)
+  }
+
+  // Connected clusters of time-overlapping events (shared by both layouts).
+  private func overlapClusters(_ events: [Event]) -> [[Event]] {
+    let sorted = events.sorted {
+      $0.startTime != $1.startTime
+        ? $0.startTime < $1.startTime
+        : $0.endTime.timeIntervalSince($0.startTime) > $1.endTime.timeIntervalSince($1.startTime)
+    }
+    var clusters: [[Event]] = []
+    var current: [Event] = []
+    var clusterEnd: Date = .distantPast
+    for e in sorted {
+      if current.isEmpty || e.startTime < clusterEnd {
+        current.append(e)
+        clusterEnd = max(clusterEnd, visualEnd(e))
+      } else {
+        clusters.append(current)
+        current = [e]
+        clusterEnd = visualEnd(e)
+      }
+    }
+    if !current.isEmpty { clusters.append(current) }
+    return clusters
+  }
+
+  private func visualEnd(_ e: Event) -> Date {
+    max(e.endTime, e.startTime.addingTimeInterval(minVisualDuration))
+  }
+
+  private func heightFor(_ e: Event) -> CGFloat {
+    let visualDuration = max(e.endTime.timeIntervalSince(e.startTime), minVisualDuration)
+    return (CGFloat(visualDuration / 3600.0) * hourSpacing) - eventVerticalPadding
   }
 
   private func yPosition(for date: Date) -> CGFloat {
@@ -175,6 +322,7 @@ struct DayTimelineContent: View {
 
 struct DayEventCard: View {
   let event: Event
+  var isBackground: Bool = false
   @Environment(AppViewModel.self) private var appVM
   @Environment(SettingsViewModel.self) private var settings
   @State private var isHovering = false
@@ -195,6 +343,10 @@ struct DayEventCard: View {
         if isUnaccepted {
           SlantedStripes(color: event.calendarColor.opacity(0.15))
             .clipShape(RoundedRectangle(cornerRadius: 4))
+        } else if isBackground {
+          // Faded band that sits behind the events overlaid on top of it.
+          RoundedRectangle(cornerRadius: 4)
+            .fill(event.calendarColor.opacity(isHovering ? 0.16 : 0.1))
         } else {
           RoundedRectangle(cornerRadius: 4)
             .fill(event.calendarColor.opacity(isHovering ? 0.3 : 0.2))

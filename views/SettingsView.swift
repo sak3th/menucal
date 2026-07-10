@@ -61,6 +61,18 @@ struct SettingsView: View {
             }
           }
 
+          // MARK: Timeline Layout
+          SettingsSection("Timeline Layout") {
+            ForEach(TimelineLayout.allCases, id: \.self) { layout in
+              SettingsChoiceRow(
+                label: layout.label,
+                isSelected: settings.timelineLayout == layout
+              ) {
+                settings.timelineLayout = layout
+              }
+            }
+          }
+
           // MARK: Behavior
           SettingsSection("Behavior") {
             SettingsToggleRow("Dismiss after joining a call", isOn: $settings.dismissAfterJoin)
