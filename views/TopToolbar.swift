@@ -28,9 +28,7 @@ struct TopToolbar: View {
           onExpandEventsMenu: { withAnimation(.spring) { appVM.activeOverlay = .eventsMenu } },
           onExpandCalendarViewMenu: { withAnimation(.spring) { appVM.activeOverlay = .calendarViewMenu } }
         )
-        .padding(2)
-        .glassEffect(in: Capsule())
-        .glassEffectTransition(.matchedGeometry)
+        .toolbarPill()
       }
     }
   }
@@ -146,7 +144,6 @@ struct Toolbar: View {
           Image(systemName: appVM.getEventsViewSymbol())
             .contentTransition(.symbolEffect(.replace))
             .toolbarIcon()
-            .padding(6)
             .animation(.smooth(duration: 0.3), value: appVM.selectedEventsView)
         }
         .interactiveButtonBackground()
@@ -155,7 +152,6 @@ struct Toolbar: View {
           Image(systemName: appVM.getCalendarViewSymbol())
             .contentTransition(.symbolEffect(.replace))
             .toolbarIcon()
-            .padding(6)
             .animation(.smooth(duration: 0.3), value: appVM.selectedCalendarView)
         }
         .interactiveButtonBackground()
@@ -165,7 +161,6 @@ struct Toolbar: View {
         }) {
           Image(systemName: "plus")
             .toolbarIcon()
-            .padding(6)
         }
         .interactiveButtonBackground()
       }

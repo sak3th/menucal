@@ -58,6 +58,17 @@ struct ViewConstants {
 
   static let timelineDividerHeight = 1.0
 
+  // Toolbars. Every pill — the top bar, the bottom bar, the Today button — is
+  // this tall, and every icon inside one occupies the same box, so the bars read
+  // as one system and hover highlights are the same shape regardless of which
+  // SF Symbol is in them (their intrinsic heights differ).
+  static let toolbarHeight: CGFloat = 36
+  static let toolbarIconSize: CGFloat = 14
+  static let toolbarIconWidth: CGFloat = 20
+  static let toolbarIconHeight: CGFloat = 18
+  static let toolbarIconPadding: CGFloat = 6
+  static let toolbarGroupPadding: CGFloat = 3
+
   // All-day events are unbounded in count, so the pinned all-day strip shows at
   // most this many rows and scrolls within itself past that — the rest of the
   // window always belongs to the timeline / events list. Rows are a fixed

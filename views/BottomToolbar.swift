@@ -17,8 +17,8 @@ struct BottomToolbar: View {
           Button(action: {appVM.onTodayClicked()}) {
             Text("Today")
               .font(.body)
-              .padding(.vertical, 8)
-              .padding(.horizontal, 12)
+              .padding(.horizontal, 14)
+              .frame(height: ViewConstants.toolbarHeight)
           }
           .interactiveButtonBackground()
           .glassEffect(.regular.interactive(), in: Capsule())
@@ -44,20 +44,16 @@ struct BottomToolbar: View {
             Button(action: { withAnimation(.spring) { appVM.activeOverlay = .calendarList } }) {
               Image(systemName: "calendar")
                 .toolbarIcon()
-                .padding(6)
             }
             .interactiveButtonBackground()
 
             Button(action: { withAnimation(.spring) { appVM.activeOverlay = .settings } }) {
               Image(systemName: "gearshape")
                 .toolbarIcon()
-                .padding(6)
             }
             .interactiveButtonBackground()
           }
-          .padding(4)
-          .glassEffect(in: Capsule())
-          .glassEffectTransition(.matchedGeometry)
+          .toolbarPill()
         }
       }
     }

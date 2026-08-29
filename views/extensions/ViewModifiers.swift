@@ -85,13 +85,28 @@ extension View {
     self.modifier(SingleLineText())
   }
 
-  /// Pins a toolbar SF Symbol to a fixed width so swapping symbols (which
-  /// have varying intrinsic widths) doesn't resize the bar. Height stays
-  /// natural so the bar keeps its original vertical size.
-  func toolbarIcon(size: CGFloat = 14, width: CGFloat = 20) -> some View {
+  /// Pins a toolbar SF Symbol to a fixed box and hit area. Fixing both
+  /// dimensions matters: symbols vary in intrinsic width *and* height, so
+  /// without this a `plus` and a `gearshape` get differently sized buttons and
+  /// visibly different hover shapes.
+  func toolbarIcon(
+    size: CGFloat = ViewConstants.toolbarIconSize,
+    width: CGFloat = ViewConstants.toolbarIconWidth
+  ) -> some View {
     self
       .font(.system(size: size))
-      .frame(width: width)
+      .frame(width: width, height: ViewConstants.toolbarIconHeight)
+      .padding(ViewConstants.toolbarIconPadding)
+  }
+
+  /// The standard toolbar pill: one height for every bar and button, with the
+  /// glass background sized to it.
+  func toolbarPill() -> some View {
+    self
+      .padding(.horizontal, ViewConstants.toolbarGroupPadding)
+      .frame(height: ViewConstants.toolbarHeight)
+      .glassEffect(in: Capsule())
+      .glassEffectTransition(.matchedGeometry)
   }
 }
 
