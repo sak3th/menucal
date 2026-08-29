@@ -6,8 +6,10 @@ import SwiftUI
 struct Event: Identifiable {
   let id: String
   let title: String
-  let startTime: Date
-  let endTime: Date
+  // var so an event can be clamped to a single day for per-day layout; see
+  // `clampedToDay(from:to:)`.
+  var startTime: Date
+  var endTime: Date
   let isAllDay: Bool
   let calendarColor: Color
 
@@ -40,6 +42,25 @@ struct Event: Identifiable {
   // it was detached from the series (modified single occurrence)
   var occurrenceDate: Date? = nil
   var isDetached: Bool = false
+  // Real start of an event trimmed to a single day; nil when untrimmed.
+  var untrimmedStart: Date? = nil
+
+  // The part of this event that falls inside [from, to]. A day view lays out
+  // its own slice of an event spanning midnight — the same event on the
+  // neighbouring day lays out the other slice — so overlap, containment and
+  // position are all about what's actually on that day's grid.
+  func clampedToDay(from: Date, to: Date) -> Event {
+    var clamped = self
+    clamped.startTime = min(max(startTime, from), to)
+    clamped.endTime = min(max(endTime, from), to)
+    // Trimming makes every continuation look like it starts at midnight, which
+    // would lose the fact that one began earlier than another. Keep the real
+    // start so ordering can still tell them apart.
+    if clamped.startTime != startTime {
+      clamped.untrimmedStart = startTime
+    }
+    return clamped
+  }
 
   // Video conference link (Zoom, Meet, Teams, etc.)
   var videoCallLink: URL? {

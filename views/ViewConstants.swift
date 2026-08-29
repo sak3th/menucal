@@ -57,5 +57,19 @@ struct ViewConstants {
   static let weekViewHeight: CGFloat = weekdayRowHeight + dayCellHeight + gridVerticalSpacing
 
   static let timelineDividerHeight = 1.0
+
+  // All-day events are unbounded in count, so the pinned all-day strip shows at
+  // most this many rows and scrolls within itself past that — the rest of the
+  // window always belongs to the timeline / events list. Rows are a fixed
+  // height so the strip always ends flush with a row boundary; a fractional cut
+  // would leave the next row's divider peeking above the strip's own.
+  static let allDayRowHeight: CGFloat = 32
+  static let allDayMaxVisibleRows = 4
+
+  // Timeline mode shows all-day events as chips instead of list rows, indented
+  // past the hour-label gutter so they line up with the event cards below.
+  static let timelineTimeColumnWidth: CGFloat = 42
+  static let allDayChipHeight: CGFloat = 20
+  static let allDayChipSpacing: CGFloat = 3
 }
 

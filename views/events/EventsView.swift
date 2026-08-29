@@ -117,15 +117,14 @@ struct AllDayEventsList: View {
 
   var body: some View {
     ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
-      VStack(spacing: 0) {
-        if !event.isUnaccepted && (index == 0 || !events[index - 1].isUnaccepted) {
-          Divider().opacity(0.5)
+      DayEventView(event: event)
+        .padding(.horizontal, 8)
+        .frame(height: ViewConstants.allDayRowHeight)
+        .overlay(alignment: .top) {
+          if !event.isUnaccepted && (index == 0 || !events[index - 1].isUnaccepted) {
+            Divider().opacity(0.5)
+          }
         }
-        Spacer().frame(height: 6)
-        DayEventView(event: event)
-          .padding(.horizontal, 8)
-        Spacer().frame(height: 6)
-      }
     }
   }
 }
@@ -143,16 +142,16 @@ struct SingleDayEventsView: View {
           .padding(.top, 32)
           .opacity(0.5)
       } else {
+        // All-day events live in the pinned `AllDayBand` above this view, so
+        // the list only carries timed events and opens on the first of them.
         VStack(alignment: .center, spacing: 0) {
-          if !viewModel.allDayEvents.isEmpty {
-            AllDayEventsList(events: viewModel.allDayEvents)
-          }
-          
           if !viewModel.events.isEmpty {
             let events = viewModel.events
             ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
               VStack(spacing: 0) {
-                if !event.isUnaccepted && (index == 0 || !events[index - 1].isUnaccepted) {
+                // index 0 skipped: the all-day strip's divider is already the
+                // boundary above it, and two lines there read as noise.
+                if !event.isUnaccepted && index > 0 && !events[index - 1].isUnaccepted {
                   Divider().opacity(0.5)
                 }
                 Spacer().frame(height: 8)

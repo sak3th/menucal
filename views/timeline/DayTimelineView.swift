@@ -15,6 +15,13 @@ private protocol Interval {
   var intervalEnd: Date { get }
   // Blockers sort ahead of same-start events so they claim the leftmost column.
   var sortsFirstOnTie: Bool { get }
+  // Start used to break ties between intervals that begin at the same point on
+  // this grid — for a continuation, the time it really began.
+  var orderingStart: Date { get }
+}
+
+extension Interval {
+  var orderingStart: Date { intervalStart }
 }
 
 extension Event: Interval {
@@ -22,6 +29,7 @@ extension Event: Interval {
   var intervalStart: Date { startTime }
   var intervalEnd: Date { endTime }
   var sortsFirstOnTie: Bool { false }
+  var orderingStart: Date { untrimmedStart ?? startTime }
 }
 
 // A non-drawn placeholder that reserves a background's title row in the
@@ -43,7 +51,7 @@ struct DayTimelineContent: View {
 
   // Layout Constants
   private let hourSpacing: CGFloat = 60
-  private let timeColumnWidth: CGFloat = 42 // Space for hour labels
+  private let timeColumnWidth = ViewConstants.timelineTimeColumnWidth // Space for hour labels
   private let minVisualDuration: TimeInterval = 10 * 60 // 10 minutes minimum visual duration
   private let eventVerticalPadding: CGFloat = 1
   // A contained event must start at least this far below its container so the
@@ -65,13 +73,19 @@ struct DayTimelineContent: View {
         let totalWidth = geometry.size.width
         let availableWidth = totalWidth - timeColumnWidth
 
+        // Lay out the day's *slices* of the events, not the events themselves:
+        // an overnight event reaching into this day is just its own midnight-to-
+        // end segment here, so overlap, containment, title clearance and
+        // position all agree with what's drawn. Cards still show real times.
+        let slices = dayEvents
+
         // Calculate Layout — nested (containment forest), layers (background +
         // foreground), or plain columns per setting.
         let layoutFrames: [String: LayoutFrame] = {
           switch settings.timelineLayout {
-          case .nested:  return layoutNested(events: viewModel.events, availableWidth: availableWidth)
-          case .layers:  return layoutLayers(events: viewModel.events, availableWidth: availableWidth)
-          case .columns: return calculateLayout(events: viewModel.events, availableWidth: availableWidth)
+          case .nested:  return layoutNested(events: slices, availableWidth: availableWidth)
+          case .layers:  return layoutLayers(events: slices, availableWidth: availableWidth)
+          case .columns: return calculateLayout(events: slices, availableWidth: availableWidth)
           }
         }()
 
@@ -134,14 +148,8 @@ struct DayTimelineContent: View {
       max(event.endTime, event.startTime.addingTimeInterval(minVisualDuration))
     }
 
-    // 1. Sort events
-    let sortedEvents = events.sorted {
-       if $0.startTime != $1.startTime {
-         return $0.startTime < $1.startTime
-       }
-       // secondary sort by duration descending (longer events first)
-       return ($0.endTime.timeIntervalSince($0.startTime)) > ($1.endTime.timeIntervalSince($1.startTime))
-    }
+    // 1. Sort events — same ordering the other layouts use.
+    let sortedEvents = events.sorted { intervalOrder($0, $1) }
 
     // 2. Cluster events that visually overlap
     var clusters: [[Event]] = []
@@ -171,10 +179,7 @@ struct DayTimelineContent: View {
         let (c, span) = packed[event.id] ?? (0, 1)
 
         let y = yPosition(for: event.startTime)
-
-        let rawDuration = event.endTime.timeIntervalSince(event.startTime)
-        let visualDuration = max(rawDuration, minVisualDuration)
-        let height = (CGFloat(visualDuration / 3600.0) * hourSpacing) - eventVerticalPadding
+        let height = heightFor(event)
 
         let x = CGFloat(c) * columnWidth
         let width = columnWidth * CGFloat(span) - 2
@@ -411,11 +416,13 @@ struct DayTimelineContent: View {
   }
 
   // Shared ordering: start ascending → blockers first on a tie (so they claim
-  // the leftmost column) → then duration descending. Real events never set
-  // sortsFirstOnTie, so this matches the previous start/duration ordering.
+  // the leftmost column) → older first among things that start together (an
+  // event continuing from yesterday began before one that starts at midnight)
+  // → then duration descending.
   private func intervalOrder(_ a: any Interval, _ b: any Interval) -> Bool {
     if a.intervalStart != b.intervalStart { return a.intervalStart < b.intervalStart }
     if a.sortsFirstOnTie != b.sortsFirstOnTie { return a.sortsFirstOnTie }
+    if a.orderingStart != b.orderingStart { return a.orderingStart < b.orderingStart }
     return a.intervalEnd.timeIntervalSince(a.intervalStart)
       > b.intervalEnd.timeIntervalSince(b.intervalStart)
   }
@@ -429,15 +436,47 @@ struct DayTimelineContent: View {
   }
 
   private func heightFor(start: Date, end: Date) -> CGFloat {
-    let visualDuration = max(end.timeIntervalSince(start), minVisualDuration)
+    let visualDuration = max(
+      clampedToDay(end).timeIntervalSince(clampedToDay(start)),
+      minVisualDuration
+    )
     return (CGFloat(visualDuration / 3600.0) * hourSpacing) - eventVerticalPadding
   }
 
+  // Events trimmed to this day. Anything wholly outside it is dropped (an
+  // event ending exactly at midnight belongs to the previous day, not this one).
+  private var dayEvents: [Event] {
+    viewModel.events
+      .filter { $0.endTime > dayStart && $0.startTime < dayEnd }
+      .map { $0.clampedToDay(from: dayStart, to: dayEnd) }
+  }
+
+  // The grid only covers this one day, so an event spilling in from the day
+  // before (or out into the next) is drawn against the day's own edges. Its
+  // card still reports its real start and end.
+  private var dayStart: Date { Calendar.current.startOfDay(for: date) }
+
+  private var dayEnd: Date {
+    Calendar.current.date(byAdding: .day, value: 1, to: dayStart)
+      ?? dayStart.addingTimeInterval(24 * 3600)
+  }
+
+  private func clampedToDay(_ date: Date) -> Date {
+    min(max(date, dayStart), dayEnd)
+  }
+
   private func yPosition(for date: Date) -> CGFloat {
+    let dividerHeight = ViewConstants.timelineDividerHeight
+    let clamped = clampedToDay(date)
+    // Midnight-to-midnight, so the last instant belongs to the closing divider
+    // rather than wrapping back to hour 0.
+    guard clamped < dayEnd else {
+      return (24 * (hourSpacing + dividerHeight)) + dividerHeight
+    }
     let calendar = Calendar.current
-    let hour = calendar.component(.hour, from: date)
-    let minute = calendar.component(.minute, from: date)
-    return (CGFloat(hour) * (hourSpacing + ViewConstants.timelineDividerHeight)) + ViewConstants.timelineDividerHeight + (CGFloat(minute) / 60.0 * hourSpacing)
+    let hour = calendar.component(.hour, from: clamped)
+    let minute = calendar.component(.minute, from: clamped)
+    return (CGFloat(hour) * (hourSpacing + dividerHeight)) + dividerHeight + (CGFloat(minute) / 60.0 * hourSpacing)
   }
 }
 
@@ -620,8 +659,6 @@ struct CurrentTimeIndicator: View {
 
 struct PagedDayTimelineView: View {
   @Environment(AppViewModel.self) private var appVM
-  @Environment(EventsViewModel.self) private var eventsVM
-  @State private var allDayVM = DayEventsViewModel()
 
   @State private var dates: [Date] = []
   @State private var scrollPosition: Date?
@@ -646,29 +683,10 @@ struct PagedDayTimelineView: View {
     return defaultScrollHour
   }
 
+  // All-day events are rendered by the pinned `AllDayBand` above the day
+  // view, shared with the events list — the timeline only draws timed events.
   var body: some View {
-    VStack(spacing: 0) {
-      if !allDayVM.allDayEvents.isEmpty {
-        VStack(spacing: 0) {
-          AllDayEventsList(events: allDayVM.allDayEvents)
-          Divider().opacity(0.5)
-        }
-      }
-      pagedTimeline
-    }
-    .task(id: appVM.selectedDate) {
-      await allDayVM.fetchEvents(for: appVM.selectedDate, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
-    }
-    .onChange(of: eventsVM.hiddenCalendarIDs) {
-      Task {
-        await allDayVM.fetchEvents(for: appVM.selectedDate, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
-      }
-    }
-    .onChange(of: eventsVM.refreshTick) {
-      Task {
-        await allDayVM.fetchEvents(for: appVM.selectedDate, hiddenCalendarIDs: eventsVM.hiddenCalendarIDs)
-      }
-    }
+    pagedTimeline
   }
 
   private var pagedTimeline: some View {
@@ -703,8 +721,6 @@ struct PagedDayTimelineView: View {
           .scrollPosition(id: $scrollPosition)
           .frame(height: totalTimelineHeight)
         }
-        // Top inset so the 12 AM label isn't clipped at the viewport edge.
-        .padding(.top, 10)
       }
       .scrollIndicators(.hidden)
       .onAppear {

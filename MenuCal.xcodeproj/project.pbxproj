@@ -25,6 +25,7 @@
 		0733B67D2EEEACB2007AFD2C /* PagedWeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0733B67C2EEEACB2007AFD2C /* PagedWeekView.swift */; };
 		073EF1EE2EFB38F100BE2DA4 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 073EF1ED2EFB38F100BE2DA4 /* Extensions.swift */; };
 		07447BA22EF9B15900C05C80 /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07447BA12EF9B15900C05C80 /* EventsView.swift */; };
+		07447BB22EF9B15900C05C80 /* AllDayBandView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07447BB12EF9B15900C05C80 /* AllDayBandView.swift */; };
 		074875702ED39A0F00867C1D /* ReminderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0748756F2ED39A0F00867C1D /* ReminderService.swift */; };
 		074875722ED39A1200867C1D /* AppleCalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 074875712ED39A1200867C1D /* AppleCalendarService.swift */; };
 		B0000002ED39A1200867C1D /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000002ED39A1200867C1D /* SettingsViewModel.swift */; };
@@ -71,6 +72,7 @@
 		0733B67C2EEEACB2007AFD2C /* PagedWeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagedWeekView.swift; sourceTree = "<group>"; };
 		073EF1ED2EFB38F100BE2DA4 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		07447BA12EF9B15900C05C80 /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
+		07447BB12EF9B15900C05C80 /* AllDayBandView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllDayBandView.swift; sourceTree = "<group>"; };
 		074875382ED395AB00867C1D /* MenuCal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuCal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0748756F2ED39A0F00867C1D /* ReminderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderService.swift; sourceTree = "<group>"; };
 		074875712ED39A1200867C1D /* AppleCalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleCalendarService.swift; sourceTree = "<group>"; };
@@ -209,6 +211,7 @@
 			isa = PBXGroup;
 			children = (
 				07447BA12EF9B15900C05C80 /* EventsView.swift */,
+				07447BB12EF9B15900C05C80 /* AllDayBandView.swift */,
 				0798AFA72F08FD2D00FF9225 /* DayEventsCapsule.swift */,
 			);
 			path = events;
@@ -345,6 +348,7 @@
 				077414372EF53B8000018FE3 /* BottomToolbar.swift in Sources */,
 				07121EFD2ED49E5F00644F2A /* MenuCalApp.swift in Sources */,
 				07447BA22EF9B15900C05C80 /* EventsView.swift in Sources */,
+				07447BB22EF9B15900C05C80 /* AllDayBandView.swift in Sources */,
 				073EF1EE2EFB38F100BE2DA4 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

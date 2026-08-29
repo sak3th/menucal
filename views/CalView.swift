@@ -24,16 +24,23 @@ struct CalView: View {
         }
         .frame(width: ViewConstants.monthViewWidth)
 
-        Group {
-          if appVM.selectedEventsView == .timeline {
-            PagedDayTimelineView().transition(.blurReplace)
-          } else {
-            EventsView().transition(.blurReplace)
+        // The all-day strip is pinned above whichever day view is active, so
+        // both views treat all-day events identically and it survives the
+        // toggle between them.
+        VStack(spacing: 0) {
+          AllDayBand()
+
+          Group {
+            if appVM.selectedEventsView == .timeline {
+              PagedDayTimelineView().transition(.blurReplace)
+            } else {
+              EventsView().transition(.blurReplace)
+            }
           }
+          .animation(.smooth(duration: 0.3), value: appVM.selectedEventsView)
         }
         .frame(minHeight: appVM.appHeight * 0.3)
         .padding(.horizontal, ViewConstants.padding)
-        .animation(.smooth(duration: 0.3), value: appVM.selectedEventsView)
       }
       .padding(.top, ViewConstants.padding)
       .frame(width: ViewConstants.appWidth)
@@ -80,6 +87,9 @@ struct CalView: View {
     .frame(maxHeight: appVM.appHeight)
     .focusable()
     .focused($isFocused)
+    // Focus is only here to receive key presses; the whole popover drawing an
+    // accent ring around itself is not the point.
+    .focusEffectDisabled()
     .onAppear {
       isFocused = true
     }

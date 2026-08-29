@@ -62,8 +62,13 @@ struct DayTimelineGrid: View {
   var body: some View {
     VStack(spacing: 0) {
       ForEach(0..<25, id: \.self) { hour in
-        HourDivider(time: formatHour(hour), amPm: formatAmPm(hour))
-          .frame(height: ViewConstants.timelineDividerHeight)
+        HourDivider(
+          time: formatHour(hour),
+          amPm: formatAmPm(hour),
+          drawsLine: hour != 0,
+          labelBelowLine: hour == 0
+        )
+        .frame(height: ViewConstants.timelineDividerHeight)
           .id("hour-\(hour)")
 
         if hour < 24 {
@@ -89,7 +94,15 @@ struct DayTimelineGrid: View {
 struct HourDivider: View {
   let time: String
   let amPm: String
-  
+  // The midnight row sits flush against the all-day strip's divider, which
+  // stands in for its line. Drawing its own would double the line, and a label
+  // centred on it would be clipped by the scroll view's top edge — so the line
+  // is dropped and the label hangs below instead of straddling.
+  var drawsLine: Bool = true
+  var labelBelowLine: Bool = false
+
+  private var labelOffset: CGFloat { labelBelowLine ? 8 : 0 }
+
   var body: some View {
     HStack(alignment: .center, spacing: 4) {
       HStack(alignment: .firstTextBaseline, spacing: 2) {
@@ -103,9 +116,12 @@ struct HourDivider: View {
           .opacity(0.3)
           .baselineOffset(-0.06)
       }
-      
+      .offset(y: labelOffset)
+
       VStack {
-        Divider().frame(height: ViewConstants.timelineDividerHeight)
+        Divider()
+          .frame(height: ViewConstants.timelineDividerHeight)
+          .opacity(drawsLine ? 1 : 0)
       }
     }
   }
