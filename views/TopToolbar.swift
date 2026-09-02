@@ -16,17 +16,17 @@ struct TopToolbar: View {
     GlassEffectContainer {
       switch appVM.activeOverlay {
       case .eventsMenu:
-        EventsMenu(onCollapse: { withAnimation(.spring) { appVM.activeOverlay = .none } })
+        EventsMenu(onCollapse: { withAnimation(.toolbarOverlay) { appVM.activeOverlay = .none } })
           .glassEffect(in: RoundedRectangle(cornerRadius: 16.0))
           .glassEffectTransition(.matchedGeometry)
       case .calendarViewMenu:
-        CalendarViewMenu(onCollapse: { withAnimation(.spring) { appVM.activeOverlay = .none } })
+        CalendarViewMenu(onCollapse: { withAnimation(.toolbarOverlay) { appVM.activeOverlay = .none } })
           .glassEffect(in: RoundedRectangle(cornerRadius: 16.0))
           .glassEffectTransition(.matchedGeometry)
       default:
         Toolbar(
-          onExpandEventsMenu: { withAnimation(.spring) { appVM.activeOverlay = .eventsMenu } },
-          onExpandCalendarViewMenu: { withAnimation(.spring) { appVM.activeOverlay = .calendarViewMenu } }
+          onExpandEventsMenu: { withAnimation(.toolbarOverlay) { appVM.activeOverlay = .eventsMenu } },
+          onExpandCalendarViewMenu: { withAnimation(.toolbarOverlay) { appVM.activeOverlay = .calendarViewMenu } }
         )
         .toolbarPill()
       }

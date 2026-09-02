@@ -192,6 +192,12 @@ class AppViewModel: Identifiable {
     changeSource = .monthScroll
   }
 
+  // Drives whether the Today button is offered at all: it has nothing to do
+  // when today is already on screen.
+  var isTodaySelected: Bool {
+    calendar.isDateInToday(selectedDate)
+  }
+
   func onTodayClicked() {
     let now = Date()
     selectedDate = calendar.startOfDay(for: now)

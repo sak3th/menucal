@@ -13,16 +13,21 @@ struct BottomToolbar: View {
   var body: some View {
     HStack(alignment: .bottom) {
       if appVM.activeOverlay != .calendarList && appVM.activeOverlay != .settings {
-        GlassEffectContainer {
-          Button(action: {appVM.onTodayClicked()}) {
-            Text("Today")
-              .font(.body)
-              .padding(.horizontal, 14)
-              .frame(height: ViewConstants.toolbarHeight)
+        // Nothing to go back to while today is selected, so the button grows in
+        // only once you've navigated away.
+        if !appVM.isTodaySelected {
+          GlassEffectContainer {
+            Button(action: {appVM.onTodayClicked()}) {
+              Text("Today")
+                .font(.body)
+                .padding(.horizontal, 14)
+                .frame(height: ViewConstants.toolbarHeight)
+            }
+            .interactiveButtonBackground()
+            .glassEffect(.regular.interactive(), in: Capsule())
+            .glassEffectTransition(.matchedGeometry)
           }
-          .interactiveButtonBackground()
-          .glassEffect(.regular.interactive(), in: Capsule())
-          .glassEffectTransition(.matchedGeometry)
+          .transition(.scale(scale: 0.7).combined(with: .opacity))
         }
 
         Spacer()
@@ -41,13 +46,13 @@ struct BottomToolbar: View {
             .glassEffectTransition(.matchedGeometry)
         } else {
           HStack(spacing: 4) {
-            Button(action: { withAnimation(.spring) { appVM.activeOverlay = .calendarList } }) {
+            Button(action: { withAnimation(.toolbarOverlay) { appVM.activeOverlay = .calendarList } }) {
               Image(systemName: "calendar")
                 .toolbarIcon()
             }
             .interactiveButtonBackground()
 
-            Button(action: { withAnimation(.spring) { appVM.activeOverlay = .settings } }) {
+            Button(action: { withAnimation(.toolbarOverlay) { appVM.activeOverlay = .settings } }) {
               Image(systemName: "gearshape")
                 .toolbarIcon()
             }
@@ -58,6 +63,7 @@ struct BottomToolbar: View {
       }
     }
     .padding(.horizontal, ViewConstants.padding)
+    .animation(.toolbarOverlay, value: appVM.isTodaySelected)
   }
 }
 

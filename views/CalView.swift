@@ -51,7 +51,7 @@ struct CalView: View {
           .contentShape(Rectangle())
           .frame(width: ViewConstants.appWidth, height: appVM.appHeight)
           .onTapGesture {
-            withAnimation(.spring) { appVM.dismissOverlays() }
+            withAnimation(.toolbarOverlay) { appVM.dismissOverlays() }
           }
           .zIndex(2)
       }
@@ -119,7 +119,7 @@ struct CalView: View {
     }
     .onKeyPress(keys: [.escape]) { _ in
       if appVM.activeOverlay != .none {
-        withAnimation(.spring) { appVM.dismissOverlays() }
+        withAnimation(.toolbarOverlay) { appVM.dismissOverlays() }
         return .handled
       }
       if appVM.selectedEvent != nil {

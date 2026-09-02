@@ -69,6 +69,15 @@ struct NativeInteractiveButtonBackgroundModifier: ViewModifier {
   }
 }
 
+extension Animation {
+  /// Every toolbar ↔ expanded-panel transition uses this, so the top bar, the
+  /// bottom bar, the Today button and dismissing an overlay all move alike.
+  /// Plain easing rather than a spring: `.spring` was slow and bouncy, and
+  /// `.default` is itself spring-timed since macOS 14, which still reads as
+  /// elastic. 0.2s matches AppKit's own panel speed.
+  static var toolbarOverlay: Animation { .easeInOut(duration: 0.2) }
+}
+
 // MARK: - Extension for easier use
 
 extension View {
