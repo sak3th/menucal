@@ -50,7 +50,10 @@ struct OnboardingWindow: View {
     // Nothing else fetches the account list while setup is on screen: the
     // handlers that refetch after a grant hang off AppView, which is the
     // popover's content and doesn't exist until the icon is clicked.
-    .task { await eventsVM.fetchCalendars() }
+    // Only once access exists, though — fetching is what *requests* it, and
+    // doing that here would raise the system prompt before the user has
+    // pressed the button that's meant to raise it.
+    .task { if permVM.hasPermissions() { await eventsVM.fetchCalendars() } }
     .onChange(of: permVM.hasCalendarPermission) { _, granted in
       if granted { Task { await eventsVM.fetchCalendars() } }
     }
