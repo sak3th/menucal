@@ -9,18 +9,8 @@ import SwiftUI
 
 struct EventDetailView: View {
 
-  @Environment(EventsViewModel.self) private var eventsVM
   let event: Event
-  
-  @State private var selectedStatus: ParticipationStatus
-  
-  init(event: Event) {
-//    self.eventsVM = eventsVM
-    self.event = event
-    self.selectedStatus = event.participationStatus
-  }
 
-  
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       
