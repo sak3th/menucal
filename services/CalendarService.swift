@@ -19,20 +19,13 @@ struct CalendarInfo: Identifiable, Hashable {
     let isGoogle: Bool
 }
 
-/// A Google account as EventKit knows it. Sign-in is offered per account
-/// rather than once, because each one needs its own OAuth grant before its
-/// invites can be answered in place.
+/// A Google account, identified by its address. Not an `EKSource`: macOS
+/// exposes *each Google calendar* as its own source, so sources outnumber
+/// accounts several to one. What actually names an account is the address,
+/// which appears as the title of its own primary calendar.
 struct CalendarAccount: Identifiable, Hashable {
-    /// The EventKit source identifier — stable, and the only handle that
-    /// survives the account being renamed in Internet Accounts.
-    let id: String
-    /// Whatever the account is called in Internet Accounts. User-chosen, so
-    /// it can be anything ("Work", "Spry"); only shown when no email is known.
-    let title: String
-    /// The account address, read off the primary calendar. Nil when every
-    /// calendar has been renamed, in which case the account can still be
-    /// connected — Google just has to be asked which one it is.
-    let email: String?
+    let email: String
+    var id: String { email }
 }
 
 /// Defines a standard interface for fetching calendar events from any service (Apple, Google, etc.).

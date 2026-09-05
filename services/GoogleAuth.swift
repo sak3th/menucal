@@ -32,32 +32,18 @@ final class GoogleAuth {
   // Offered for copying: the default browser may be signed into the wrong
   // Google profile, and pasting is the only way to pick the right one.
   private(set) var authURL: URL?
-  /// The account the in-flight flow was started for, so its row can show the
+  /// The address the in-flight flow was started for, so its row can show the
   /// progress instead of the whole list doing so.
-  private(set) var connecting: CalendarAccount?
+  private(set) var connecting: String?
 
-  /// Connected accounts: address → the EventKit source it was connected for.
-  /// Keyed by address because that is how Google addresses a calendar; the
-  /// source id rides along so an account whose address EventKit couldn't tell
-  /// us still shows as connected once Google has named it.
-  private(set) var accounts: [String: String] = [:]
+  /// Addresses with a live grant. One refresh token each, keyed by address in
+  /// the keychain — the address is also how Google addresses the calendar we
+  /// write the RSVP to.
+  private(set) var accounts: Set<String> = []
 
   var isConnected: Bool { !accounts.isEmpty }
 
-  /// Connected for this specific EventKit account — by source when we
-  /// recorded one, otherwise by address.
-  func isConnected(_ account: CalendarAccount) -> Bool {
-    resolvedEmail(for: account) != nil
-  }
-
-  func resolvedEmail(for account: CalendarAccount) -> String? {
-    // The empty string is the "source unknown" marker for migrated grants,
-    // so never let it match a real source.
-    if !account.id.isEmpty,
-       let email = accounts.first(where: { $0.value == account.id })?.key { return email }
-    guard let email = account.email?.lowercased(), accounts[email] != nil else { return nil }
-    return email
-  }
+  func isConnected(_ email: String) -> Bool { accounts.contains(email.lowercased()) }
 
   /// Whether an RSVP as this address can be written rather than handed off.
   func canRespond(as email: String?) -> Bool { tokenAccount(for: email) != nil }
@@ -67,8 +53,8 @@ final class GoogleAuth {
   /// connected account answers for anything we can't match exactly — which is
   /// also what the single-account build did.
   private func tokenAccount(for email: String?) -> String? {
-    if let email = email?.lowercased(), accounts[email] != nil { return email }
-    return accounts.count == 1 ? accounts.keys.first : nil
+    if let email = email?.lowercased(), accounts.contains(email) { return email }
+    return accounts.count == 1 ? accounts.first : nil
   }
 
   private static let accountsKey = "googleAccounts"
@@ -88,9 +74,9 @@ final class GoogleAuth {
   private var accessTokens: [String: (token: String, expiry: Date)] = [:]
 
   private init() {
-    if let saved = UserDefaults.standard.dictionary(forKey: Self.accountsKey) as? [String: String] {
+    if let saved = UserDefaults.standard.stringArray(forKey: Self.accountsKey) {
       // Only trust an address if the token backing it is still in the keychain.
-      accounts = saved.filter { Keychain.get(account: $0.key) != nil }
+      accounts = Set(saved.filter { Keychain.get(account: $0) != nil })
     }
     migrateLegacyAccount()
   }
@@ -102,14 +88,12 @@ final class GoogleAuth {
           email.contains("@") else { return }
     UserDefaults.standard.removeObject(forKey: Self.legacyEmailKey)
     Keychain.set(token, account: email)
-    // No source id: the old flow never knew which EventKit account it was for.
-    // Matching falls back to the address, which is what it was keyed on.
-    accounts[email] = ""
+    accounts.insert(email)
     persistAccounts()
   }
 
   private func persistAccounts() {
-    UserDefaults.standard.set(accounts, forKey: Self.accountsKey)
+    UserDefaults.standard.set(Array(accounts), forKey: Self.accountsKey)
   }
 
   // MARK: - Credentials
@@ -124,14 +108,14 @@ final class GoogleAuth {
 
   // MARK: - Flow
 
-  func start(for account: CalendarAccount?, openBrowser: Bool) async {
+  func start(for email: String?, openBrowser: Bool) async {
     cancel()
     guard !clientID.isEmpty else {
       phase = .failed("Missing GoogleClientID — check Secrets.xcconfig is wired into the target.")
       return
     }
 
-    connecting = account
+    connecting = email?.lowercased()
     verifier = Self.randomURLSafe(64)
     expectedState = Self.randomURLSafe(16)
     let challenge = Data(SHA256.hash(data: Data(verifier.utf8))).base64URLEncoded
@@ -160,9 +144,9 @@ final class GoogleAuth {
       .init(name: "access_type", value: "offline"),
       // Pre-select the account this row is for. Without an address to hint
       // with, fall back to the picker and let Google ask which one it is.
-      .init(name: "prompt", value: account?.email == nil ? "consent select_account" : "consent"),
+      .init(name: "prompt", value: email == nil ? "consent select_account" : "consent"),
     ]
-    if let hint = account?.email {
+    if let hint = email {
       comps.queryItems?.append(.init(name: "login_hint", value: hint))
     }
 
@@ -186,7 +170,7 @@ final class GoogleAuth {
 
   func disconnect(email: String) {
     Keychain.delete(account: email)
-    accounts[email] = nil
+    accounts.remove(email)
     accessTokens[email] = nil
     persistAccounts()
   }
@@ -323,7 +307,6 @@ final class GoogleAuth {
 
   private func exchange(code: String) async {
     phase = .exchanging
-    let target = connecting
     connecting = nil
     do {
       let body = try await postForm([
@@ -350,9 +333,7 @@ final class GoogleAuth {
       Keychain.set(refresh, account: email)
       accessTokens[email] = (body["access_token"] as? String ?? "",
                              Date().addingTimeInterval(body["expires_in"] as? Double ?? 3500))
-      // Only claim the source when Google signed in the account we asked for;
-      // otherwise the row we started from is still unconnected and must say so.
-      accounts[email] = (target?.email == nil || target?.email?.lowercased() == email) ? (target?.id ?? "") : ""
+      accounts.insert(email)
       persistAccounts()
       phase = .idle
       NSApp.activate(ignoringOtherApps: true)
