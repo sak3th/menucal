@@ -56,7 +56,10 @@ struct SettingsView: View {
           // events through Apple Calendar, so there is genuinely nothing to
           // connect until one is added there.
           if !eventsVM.googleAccounts.isEmpty || auth.isConnected {
-            SettingsSection("Google Accounts") {
+            // Named for the capability, not the object: a bare switch beside
+            // an account in a calendar app otherwise reads as "show/hide this
+            // account's events".
+            SettingsSection("Respond to Invites") {
               GoogleAccountRows(accounts: eventsVM.googleAccounts) { email in
                 // The flow has to run somewhere that survives the browser
                 // taking focus, which this popover does not — so open the

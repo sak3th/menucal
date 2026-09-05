@@ -35,7 +35,6 @@ struct GoogleAccountRows: View {
     return auth.accounts.filter { !known.contains($0) }.sorted()
   }
 
-  @ViewBuilder
   private func row(for email: String) -> some View {
     HStack(spacing: 8) {
       Text(email)
@@ -43,34 +42,34 @@ struct GoogleAccountRows: View {
         .lineLimit(1)
         .truncationMode(.middle)
       Spacer(minLength: 8)
-      // fixedSize both trailing pieces: in the Settings popover the row is
-      // narrow enough that "Connected"/"Disconnect" otherwise wrap mid-word.
-      // The address is the part that can afford to truncate.
-      trailing(for: email).fixedSize()
+      // A spinner in the switch's place while the browser round-trip runs.
+      // The grant doesn't land until Google calls back, so the switch would
+      // otherwise sit visibly off after being turned on, then snap across —
+      // a toggle that won't stay where you put it.
+      if auth.connecting == email {
+        ProgressView().controlSize(.small)
+      } else {
+        Toggle("", isOn: binding(for: email))
+          .labelsHidden()
+          .toggleStyle(.switch)
+          .controlSize(.mini)
+          // A second flow would cancel the first one's listener out from under it.
+          .disabled(auth.connecting != nil)
+      }
     }
     .padding(.horizontal, 12)
-    .padding(.vertical, 8)
+    .padding(.vertical, 7)
+    // Deliberately no row-wide tap target, unlike the preference toggles this
+    // sits beside: those flip a local setting, this one launches a browser or
+    // revokes a grant, and both deserve a deliberate hit on the control.
   }
 
-  @ViewBuilder
-  private func trailing(for email: String) -> some View {
-    if auth.connecting == email {
-      ProgressView().controlSize(.small)
-    } else if auth.isConnected(email) {
-      HStack(spacing: 8) {
-        Text("Connected")
-          .font(.system(size: 12, weight: .medium))
-          .foregroundStyle(.green)
-        Button("Disconnect") { auth.disconnect(email: email) }
-          .font(.system(size: 12))
-          .buttonStyle(.borderless)
+  private func binding(for email: String) -> Binding<Bool> {
+    Binding(
+      get: { auth.isConnected(email) },
+      set: { isOn in
+        if isOn { connect(email) } else { auth.disconnect(email: email) }
       }
-    } else {
-      Button("Connect") { connect(email) }
-        .font(.system(size: 12))
-        .buttonStyle(.borderless)
-        // A second flow would cancel the first one's listener out from under it.
-        .disabled(auth.connecting != nil)
-    }
+    )
   }
 }
