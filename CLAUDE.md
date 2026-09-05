@@ -127,8 +127,10 @@ So `AppleCalendarService.respondToEvent` branches:
 1. **Google-account event whose account is connected** → written through
    `GoogleCalendarAPI.setResponseStatus`. Returns `.written`. Which grant is
    used is decided by `GoogleAuth.canRespond(as:)` / `validAccessToken(for:)`
-   from `event.currentUserEmail` — an invite can list an *alias*, so a single
-   connected account answers for anything that doesn't match exactly.
+   from `event.currentUserEmail`, matched **exactly**. Google addresses the
+   calendar by that address, so another account's token can't write the event
+   anyway — guessing would only claim a write that fails, flashing a status
+   the rollback takes straight back.
 2. **Everything else** → deep-link handoff to Google Calendar or Calendar.app.
    Returns `.handedOff`.
 

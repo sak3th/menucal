@@ -48,13 +48,15 @@ final class GoogleAuth {
   /// Whether an RSVP as this address can be written rather than handed off.
   func canRespond(as email: String?) -> Bool { tokenAccount(for: email) != nil }
 
-  /// The connected account that answers for an event's self-address. An
-  /// invite can list an alias rather than the account address, so a lone
-  /// connected account answers for anything we can't match exactly — which is
-  /// also what the single-account build did.
+  /// The connected account that answers for an event's self-address. Exact
+  /// match only, and never for a nil address: Google addresses the calendar
+  /// *by* that address, so a token belonging to another account can't write
+  /// the event regardless. Guessing — with a lone connected account, say —
+  /// only claims a write that then fails, which flashes a status the rollback
+  /// immediately takes back and hands off to the browser anyway.
   private func tokenAccount(for email: String?) -> String? {
-    if let email = email?.lowercased(), accounts.contains(email) { return email }
-    return accounts.count == 1 ? accounts.first : nil
+    guard let email = email?.lowercased(), accounts.contains(email) else { return nil }
+    return email
   }
 
   private static let accountsKey = "googleAccounts"
@@ -93,7 +95,7 @@ final class GoogleAuth {
   }
 
   private func persistAccounts() {
-    UserDefaults.standard.set(Array(accounts), forKey: Self.accountsKey)
+    UserDefaults.standard.set(accounts.sorted(), forKey: Self.accountsKey)
   }
 
   // MARK: - Credentials
@@ -200,7 +202,13 @@ final class GoogleAuth {
       // and holding on to it would leave Settings claiming a live connection
       // while every RSVP quietly fell back to a browser.
       disconnect(email: account)
-      phase = .failed("Google sign-in for \(account) expired. Reconnect to respond in place.")
+      // This runs from an RSVP, not from the setup window, so `phase` may
+      // belong to a sign-in that is on screen right now. Reporting over it
+      // would replace "Waiting for Google…" with an error while that flow's
+      // listener is still live and its callback still coming.
+      if phase == .idle {
+        phase = .failed("Google sign-in for \(account) expired. Reconnect to respond in place.")
+      }
       throw GoogleAuthError.server(detail)
     }
     guard let token = body["access_token"] as? String else {
@@ -307,7 +315,10 @@ final class GoogleAuth {
 
   private func exchange(code: String) async {
     phase = .exchanging
-    connecting = nil
+    // Released only once the exchange has settled. Dropping it here would put
+    // an off switch back on screen for the length of the round-trip, then flip
+    // it on — the snap-back the spinner exists to prevent.
+    defer { connecting = nil }
     do {
       let body = try await postForm([
         "client_id": clientID,
@@ -331,8 +342,12 @@ final class GoogleAuth {
         return
       }
       Keychain.set(refresh, account: email)
-      accessTokens[email] = (body["access_token"] as? String ?? "",
-                             Date().addingTimeInterval(body["expires_in"] as? Double ?? 3500))
+      // Only cache a token we actually got. Caching "" with an hour's expiry
+      // would send `Bearer ` on every call for that hour, and the refresh path
+      // that would have fixed it never runs because the entry looks valid.
+      if let access = body["access_token"] as? String {
+        accessTokens[email] = (access, Date().addingTimeInterval(body["expires_in"] as? Double ?? 3500))
+      }
       accounts.insert(email)
       persistAccounts()
       phase = .idle
