@@ -104,8 +104,8 @@ There is also a `Window` scene (`OnboardingWindow`, id `"onboarding"`) for setup
 - `ReminderService` protocol — `fetchReminders()`
 - `AppleCalendarService` / `AppleReminderService` — EventKit implementations
 - `GoogleAuth` — OAuth for the Google Calendar API (`@Observable`, `@MainActor`, singleton).
-  **Multi-account**: `accounts` maps address → the EventKit source id it was
-  connected for, and one refresh token per address lives in the keychain.
+  **Multi-account**: `accounts` is the set of connected addresses, with one
+  refresh token per address in the keychain.
 - `GoogleCalendarAPI` — the RSVP write
 - `Keychain` — generic-password wrapper; holds one Google refresh token per
   connected address (account name = the address)
@@ -205,13 +205,21 @@ becomes active, taking any progress or error state with it.
   account in EventKit (or already connected) → `.google`; otherwise → `.done`.
 - **The Google step comes after permissions for a reason.** Until EventKit is
   readable we can't see which accounts are on the Mac, so the offer would be a
-  blind one. `AppleCalendarService.fetchGoogleAccounts()` enumerates the Google
-  `EKSource`s and reads each account's address off its *writable* calendars —
-  a subscribed read-only calendar is titled with its owner's address. The step
-  then offers **one Connect per account**: a grant covers one address, so a
-  single button could only ever fix one of them. The address is passed as
+  blind one. `AppleCalendarService.fetchGoogleAccounts()` supplies the list,
+  and the step offers **one Connect per account**: a grant covers one address,
+  so a single button could only ever fix one of them. The address is passed as
   `login_hint`; the grant is filed under whatever address the returned
   `id_token` names, not the hint, since the browser may be on another profile.
+- **An `EKSource` is not an account.** macOS gives *each Google calendar* its
+  own CalDAV source, so a single account with six calendars shows up as six
+  sources titled "Holidays in India", "Tech Leaves" and so on. Grouping by
+  source lists calendars as if they were accounts.
+  `fetchGoogleAccounts()` therefore folds sources down to the distinct
+  addresses among them: an account's own primary calendar is titled with its
+  address, and a source with no address is a secondary or shared calendar of
+  an account already listed. Only *writable* calendars are considered — a
+  subscribed read-only calendar is titled with its **owner's** address and
+  would invent an account out of a colleague.
 - Presented at launch from the **menu bar label**'s `onAppear`
   (`MenuBarLabel` in `MenuCalApp.swift`). It cannot live in `AppView.onAppear` —
   that's the popover's content and doesn't exist until the icon is clicked.

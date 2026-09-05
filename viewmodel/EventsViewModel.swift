@@ -108,7 +108,7 @@ class EventsViewModel {
   /// nothing to connect, and someone who has connected every account is done.
   @MainActor
   var hasUnconnectedGoogleAccounts: Bool {
-    googleAccounts.contains { !GoogleAuth.shared.isConnected($0) }
+    googleAccounts.contains { !GoogleAuth.shared.isConnected($0.email) }
   }
 
   func toggleCalendarVisibility(id: String) {

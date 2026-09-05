@@ -160,31 +160,32 @@ class AppleCalendarService: CalendarService {
     }
   }
   
-  // The accounts behind the Google calendars, one row per Internet Accounts
-  // entry. EKSource carries no email of its own, so the address is read off
-  // the primary calendar, which Google titles with the account address.
+  // The Google accounts behind the Google calendars. macOS gives each Google
+  // calendar its own EKSource, so this is a fold from many sources down to the
+  // handful of addresses among them: an account's own primary calendar is
+  // titled with its address, and every source without one is a secondary or
+  // shared calendar belonging to an account we've already listed.
   func fetchGoogleAccounts() async throws -> [CalendarAccount] {
     try await requestAccess()
+    var seen = Set<String>()
     return eventStore.sources
       .filter { isGoogleSource($0) }
-      .map { source in
+      .compactMap { source in
         // Writable calendars only: a subscribed read-only calendar is titled
-        // with its *owner's* address, which would name the account after
-        // someone else.
+        // with its *owner's* address, which would invent an account out of a
+        // colleague.
         let titles = [source.title]
           + source.calendars(for: .event)
               .filter(\.allowsContentModifications)
               .map(\.title)
-        return CalendarAccount(
-          id: source.sourceIdentifier,
-          title: source.title,
-          email: titles.first(where: Self.looksLikeEmail)
-        )
+        guard let email = titles.first(where: Self.looksLikeEmail)?.lowercased(),
+              seen.insert(email).inserted else { return nil }
+        return CalendarAccount(email: email)
       }
   }
 
-  // Deliberately loose: this only decides whether we can hand Google a
-  // login_hint, and a wrong guess costs one extra tap in the account picker.
+  // Deliberately loose: this only has to tell an address apart from a calendar
+  // name like "Tech Leaves", and both sides of that are far apart.
   private static func looksLikeEmail(_ s: String) -> Bool {
     guard let at = s.firstIndex(of: "@"), s.firstIndex(of: " ") == nil else { return false }
     return at != s.startIndex && s[s.index(after: at)...].contains(".")

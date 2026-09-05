@@ -195,8 +195,8 @@ private struct GoogleConnectStep: View {
       )
 
       SettingsSection("Google accounts on this Mac") {
-        GoogleAccountRows(accounts: eventsVM.googleAccounts) { account in
-          Task { await auth.start(for: account, openBrowser: true) }
+        GoogleAccountRows(accounts: eventsVM.googleAccounts) { email in
+          Task { await auth.start(for: email, openBrowser: true) }
         }
       }
       .padding(.horizontal, 24)

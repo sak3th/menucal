@@ -57,13 +57,13 @@ struct SettingsView: View {
           // connect until one is added there.
           if !eventsVM.googleAccounts.isEmpty || auth.isConnected {
             SettingsSection("Google Accounts") {
-              GoogleAccountRows(accounts: eventsVM.googleAccounts) { account in
+              GoogleAccountRows(accounts: eventsVM.googleAccounts) { email in
                 // The flow has to run somewhere that survives the browser
                 // taking focus, which this popover does not — so open the
                 // setup window and start it there.
                 openWindow(id: OnboardingStep.windowID)
                 NSApp.activate(ignoringOtherApps: true)
-                Task { await auth.start(for: account, openBrowser: true) }
+                Task { await auth.start(for: email, openBrowser: true) }
               }
             }
           }
