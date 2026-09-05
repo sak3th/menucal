@@ -127,7 +127,7 @@ private struct MenuBarLabel: View {
         // has fetched them yet this early.
         Task {
           await eventsVM.fetchCalendars()
-          if !settings.didSeeGoogleOnboarding, eventsVM.hasGoogleCalendars, !auth.isConnected {
+          if !settings.didSeeGoogleOnboarding, eventsVM.hasUnconnectedGoogleAccounts {
             present()
           }
         }

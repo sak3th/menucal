@@ -22,7 +22,7 @@ enum GoogleCalendarAPI {
       throw GoogleCalendarError.noCalendarID
     }
 
-    let token = try await GoogleAuth.shared.validAccessToken()
+    let token = try await GoogleAuth.shared.validAccessToken(for: calendarID)
     let eventID = try await resolveEventID(for: event, calendarID: calendarID, token: token)
     let path = "/calendars/\(esc(calendarID))/events/\(esc(eventID))"
 

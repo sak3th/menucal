@@ -19,6 +19,22 @@ struct CalendarInfo: Identifiable, Hashable {
     let isGoogle: Bool
 }
 
+/// A Google account as EventKit knows it. Sign-in is offered per account
+/// rather than once, because each one needs its own OAuth grant before its
+/// invites can be answered in place.
+struct CalendarAccount: Identifiable, Hashable {
+    /// The EventKit source identifier — stable, and the only handle that
+    /// survives the account being renamed in Internet Accounts.
+    let id: String
+    /// Whatever the account is called in Internet Accounts. User-chosen, so
+    /// it can be anything ("Work", "Spry"); only shown when no email is known.
+    let title: String
+    /// The account address, read off the primary calendar. Nil when every
+    /// calendar has been renamed, in which case the account can still be
+    /// connected — Google just has to be asked which one it is.
+    let email: String?
+}
+
 /// Defines a standard interface for fetching calendar events from any service (Apple, Google, etc.).
 protocol CalendarService {
     /// Fetches events for a specific day.
@@ -33,6 +49,9 @@ protocol CalendarService {
     /// Fetches all available calendars.
     /// - Returns: An array of `CalendarInfo` objects.
     func fetchCalendars() async throws -> [CalendarInfo]
+
+    /// Fetches the Google accounts configured on this Mac.
+    func fetchGoogleAccounts() async throws -> [CalendarAccount]
     
     /// Refreshes the underlying data sources (e.g. syncs with servers).
     func refreshData()

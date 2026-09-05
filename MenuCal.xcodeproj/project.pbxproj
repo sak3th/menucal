@@ -10,6 +10,7 @@
 		RO0000022ED39A1200867C1D /* RSVPOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = RO0000012ED39A1200867C1D /* RSVPOverrides.swift */; };
 		GP0000022ED39A1200867C1D /* GoogleCalendarAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = GP0000012ED39A1200867C1D /* GoogleCalendarAPI.swift */; };
 		OW0000022ED39A1200867C1D /* OnboardingWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = OW0000012ED39A1200867C1D /* OnboardingWindow.swift */; };
+		AC0000022ED39A1200867C1D /* GoogleAccountsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000012ED39A1200867C1D /* GoogleAccountsView.swift */; };
 		KC0000022ED39A1200867C1D /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = KC0000012ED39A1200867C1D /* Keychain.swift */; };
 		GA0000022ED39A1200867C1D /* GoogleAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = GA0000012ED39A1200867C1D /* GoogleAuth.swift */; };
 		07121EF32ED49D2C00644F2A /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07121EE82ED49D2B00644F2A /* PermissionsView.swift */; };
@@ -63,6 +64,7 @@
 		GP0000012ED39A1200867C1D /* GoogleCalendarAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleCalendarAPI.swift; sourceTree = "<group>"; };
 		SX0000012ED39A1200867C1D /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		OW0000012ED39A1200867C1D /* OnboardingWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWindow.swift; sourceTree = "<group>"; };
+		AC0000012ED39A1200867C1D /* GoogleAccountsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAccountsView.swift; sourceTree = "<group>"; };
 		KC0000012ED39A1200867C1D /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		GA0000012ED39A1200867C1D /* GoogleAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAuth.swift; sourceTree = "<group>"; };
 		07121EE82ED49D2B00644F2A /* PermissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsView.swift; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 			isa = PBXGroup;
 			children = (
 				OW0000012ED39A1200867C1D /* OnboardingWindow.swift */,
+				AC0000012ED39A1200867C1D /* GoogleAccountsView.swift */,
 				07C35A392F0EA95A00677E94 /* timeline */,
 				0798AFA62F08FCDD00FF9225 /* events */,
 				0760C5C92F08096500A189AC /* details */,
@@ -326,6 +329,7 @@
 				RO0000022ED39A1200867C1D /* RSVPOverrides.swift in Sources */,
 				GP0000022ED39A1200867C1D /* GoogleCalendarAPI.swift in Sources */,
 				OW0000022ED39A1200867C1D /* OnboardingWindow.swift in Sources */,
+				AC0000022ED39A1200867C1D /* GoogleAccountsView.swift in Sources */,
 				KC0000022ED39A1200867C1D /* Keychain.swift in Sources */,
 				GA0000022ED39A1200867C1D /* GoogleAuth.swift in Sources */,
 				07C35A3B2F0EA9A400677E94 /* DayTimelineView.swift in Sources */,

@@ -18,11 +18,13 @@ import Network
 final class GoogleAuth {
   static let shared = GoogleAuth()
 
+  // One flow at a time, so this is global rather than per-account; which
+  // account it belongs to is `connecting`. There is no `.connected` case —
+  // being connected is a property of an account, not of the flow.
   enum Phase: Equatable {
     case idle
     case awaitingCallback
     case exchanging
-    case connected(String)
     case failed(String)
   }
 
@@ -30,14 +32,52 @@ final class GoogleAuth {
   // Offered for copying: the default browser may be signed into the wrong
   // Google profile, and pasting is the only way to pick the right one.
   private(set) var authURL: URL?
-  private(set) var connectedEmail: String?
+  /// The account the in-flight flow was started for, so its row can show the
+  /// progress instead of the whole list doing so.
+  private(set) var connecting: CalendarAccount?
 
-  var isConnected: Bool { connectedEmail != nil }
+  /// Connected accounts: address → the EventKit source it was connected for.
+  /// Keyed by address because that is how Google addresses a calendar; the
+  /// source id rides along so an account whose address EventKit couldn't tell
+  /// us still shows as connected once Google has named it.
+  private(set) var accounts: [String: String] = [:]
 
-  // One account for now. Keyed so a list can be added later without migration.
-  private static let account = "primary"
-  private static let emailKey = "googleAccountEmail"
+  var isConnected: Bool { !accounts.isEmpty }
+
+  /// Connected for this specific EventKit account — by source when we
+  /// recorded one, otherwise by address.
+  func isConnected(_ account: CalendarAccount) -> Bool {
+    resolvedEmail(for: account) != nil
+  }
+
+  func resolvedEmail(for account: CalendarAccount) -> String? {
+    // The empty string is the "source unknown" marker for migrated grants,
+    // so never let it match a real source.
+    if !account.id.isEmpty,
+       let email = accounts.first(where: { $0.value == account.id })?.key { return email }
+    guard let email = account.email?.lowercased(), accounts[email] != nil else { return nil }
+    return email
+  }
+
+  /// Whether an RSVP as this address can be written rather than handed off.
+  func canRespond(as email: String?) -> Bool { tokenAccount(for: email) != nil }
+
+  /// The connected account that answers for an event's self-address. An
+  /// invite can list an alias rather than the account address, so a lone
+  /// connected account answers for anything we can't match exactly — which is
+  /// also what the single-account build did.
+  private func tokenAccount(for email: String?) -> String? {
+    if let email = email?.lowercased(), accounts[email] != nil { return email }
+    return accounts.count == 1 ? accounts.keys.first : nil
+  }
+
+  private static let accountsKey = "googleAccounts"
   private static let scope = "https://www.googleapis.com/auth/calendar.events openid email"
+
+  // Pre-multi-account storage: a single refresh token under a fixed slot,
+  // with the address in UserDefaults. Migrated on first launch, then gone.
+  private static let legacyAccount = "primary"
+  private static let legacyEmailKey = "googleAccountEmail"
 
   private var listener: NWListener?
   private var verifier = ""
@@ -45,16 +85,31 @@ final class GoogleAuth {
   // Held separately from authURL: the token exchange needs the same redirect
   // back, and authURL is cleared as soon as the callback lands.
   private var redirectURI = ""
-  private var accessToken: String?
-  private var accessTokenExpiry = Date.distantPast
+  private var accessTokens: [String: (token: String, expiry: Date)] = [:]
 
   private init() {
-    // Only trust the cached email if the token backing it is still present.
-    if let email = UserDefaults.standard.string(forKey: Self.emailKey),
-       Keychain.get(account: Self.account) != nil {
-      connectedEmail = email
-      phase = .connected(email)
+    if let saved = UserDefaults.standard.dictionary(forKey: Self.accountsKey) as? [String: String] {
+      // Only trust an address if the token backing it is still in the keychain.
+      accounts = saved.filter { Keychain.get(account: $0.key) != nil }
     }
+    migrateLegacyAccount()
+  }
+
+  private func migrateLegacyAccount() {
+    guard let token = Keychain.get(account: Self.legacyAccount) else { return }
+    defer { Keychain.delete(account: Self.legacyAccount) }
+    guard let email = UserDefaults.standard.string(forKey: Self.legacyEmailKey)?.lowercased(),
+          email.contains("@") else { return }
+    UserDefaults.standard.removeObject(forKey: Self.legacyEmailKey)
+    Keychain.set(token, account: email)
+    // No source id: the old flow never knew which EventKit account it was for.
+    // Matching falls back to the address, which is what it was keyed on.
+    accounts[email] = ""
+    persistAccounts()
+  }
+
+  private func persistAccounts() {
+    UserDefaults.standard.set(accounts, forKey: Self.accountsKey)
   }
 
   // MARK: - Credentials
@@ -69,13 +124,14 @@ final class GoogleAuth {
 
   // MARK: - Flow
 
-  func start(openBrowser: Bool) async {
+  func start(for account: CalendarAccount?, openBrowser: Bool) async {
     cancel()
     guard !clientID.isEmpty else {
       phase = .failed("Missing GoogleClientID — check Secrets.xcconfig is wired into the target.")
       return
     }
 
+    connecting = account
     verifier = Self.randomURLSafe(64)
     expectedState = Self.randomURLSafe(16)
     let challenge = Data(SHA256.hash(data: Data(verifier.utf8))).base64URLEncoded
@@ -84,6 +140,7 @@ final class GoogleAuth {
     do {
       port = try await startListener()
     } catch {
+      connecting = nil
       phase = .failed("Couldn't open a local port: \(error.localizedDescription)")
       return
     }
@@ -101,8 +158,13 @@ final class GoogleAuth {
       .init(name: "state", value: expectedState),
       // Both are required to actually receive a refresh token.
       .init(name: "access_type", value: "offline"),
-      .init(name: "prompt", value: "consent select_account"),
+      // Pre-select the account this row is for. Without an address to hint
+      // with, fall back to the picker and let Google ask which one it is.
+      .init(name: "prompt", value: account?.email == nil ? "consent select_account" : "consent"),
     ]
+    if let hint = account?.email {
+      comps.queryItems?.append(.init(name: "login_hint", value: hint))
+    }
 
     authURL = comps.url
     phase = .awaitingCallback
@@ -118,26 +180,25 @@ final class GoogleAuth {
     listener?.cancel()
     listener = nil
     authURL = nil
-    if case .connected = phase {} else { phase = .idle }
+    connecting = nil
+    phase = .idle
   }
 
-  func disconnect() {
-    cancel()
-    Keychain.delete(account: Self.account)
-    UserDefaults.standard.removeObject(forKey: Self.emailKey)
-    connectedEmail = nil
-    accessToken = nil
-    accessTokenExpiry = .distantPast
-    phase = .idle
+  func disconnect(email: String) {
+    Keychain.delete(account: email)
+    accounts[email] = nil
+    accessTokens[email] = nil
+    persistAccounts()
   }
 
   // MARK: - Token access, for the API layer
 
-  func validAccessToken() async throws -> String {
-    if let token = accessToken, accessTokenExpiry > Date().addingTimeInterval(60) {
-      return token
+  func validAccessToken(for email: String?) async throws -> String {
+    guard let account = tokenAccount(for: email) else { throw GoogleAuthError.notConnected }
+    if let cached = accessTokens[account], cached.expiry > Date().addingTimeInterval(60) {
+      return cached.token
     }
-    guard let refresh = Keychain.get(account: Self.account) else {
+    guard let refresh = Keychain.get(account: account) else {
       throw GoogleAuthError.notConnected
     }
     let body: [String: Any]
@@ -154,15 +215,14 @@ final class GoogleAuth {
       // and are left alone — only a 4xx from Google means the grant is gone,
       // and holding on to it would leave Settings claiming a live connection
       // while every RSVP quietly fell back to a browser.
-      disconnect()
-      phase = .failed("Google sign-in expired. Reconnect to respond in place.")
+      disconnect(email: account)
+      phase = .failed("Google sign-in for \(account) expired. Reconnect to respond in place.")
       throw GoogleAuthError.server(detail)
     }
     guard let token = body["access_token"] as? String else {
       throw GoogleAuthError.server("Refresh returned no access_token")
     }
-    accessToken = token
-    accessTokenExpiry = Date().addingTimeInterval(body["expires_in"] as? Double ?? 3500)
+    accessTokens[account] = (token, Date().addingTimeInterval(body["expires_in"] as? Double ?? 3500))
     return token
   }
 
@@ -232,10 +292,12 @@ final class GoogleAuth {
         self.listener = nil
         self.authURL = nil
         if let error = value("error") {
+          self.connecting = nil
           self.phase = .failed(error == "access_denied" ? "Access was denied." : error)
           return
         }
         guard value("state") == self.expectedState else {
+          self.connecting = nil
           self.phase = .failed("State mismatch — the flow may have been tampered with.")
           return
         }
@@ -261,6 +323,8 @@ final class GoogleAuth {
 
   private func exchange(code: String) async {
     phase = .exchanging
+    let target = connecting
+    connecting = nil
     do {
       let body = try await postForm([
         "client_id": clientID,
@@ -276,14 +340,21 @@ final class GoogleAuth {
         phase = .failed("Google didn't return a refresh token. Disconnect the app at myaccount.google.com/permissions and retry.")
         return
       }
-      Keychain.set(refresh, account: Self.account)
-      accessToken = body["access_token"] as? String
-      accessTokenExpiry = Date().addingTimeInterval(body["expires_in"] as? Double ?? 3500)
-
-      let email = (body["id_token"] as? String).flatMap(Self.email(fromIDToken:)) ?? "Google account"
-      UserDefaults.standard.set(email, forKey: Self.emailKey)
-      connectedEmail = email
-      phase = .connected(email)
+      // File it under the address Google actually signed in, not the one we
+      // hinted: the browser may have been on a different profile, and keying
+      // it on the hint would leave a token that answers for the wrong calendar.
+      guard let email = (body["id_token"] as? String).flatMap(Self.email(fromIDToken:))?.lowercased() else {
+        phase = .failed("Google didn't say which account signed in. Try again.")
+        return
+      }
+      Keychain.set(refresh, account: email)
+      accessTokens[email] = (body["access_token"] as? String ?? "",
+                             Date().addingTimeInterval(body["expires_in"] as? Double ?? 3500))
+      // Only claim the source when Google signed in the account we asked for;
+      // otherwise the row we started from is still unconnected and must say so.
+      accounts[email] = (target?.email == nil || target?.email?.lowercased() == email) ? (target?.id ?? "") : ""
+      persistAccounts()
+      phase = .idle
       NSApp.activate(ignoringOtherApps: true)
     } catch {
       phase = .failed(error.localizedDescription)

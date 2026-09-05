@@ -160,6 +160,36 @@ class AppleCalendarService: CalendarService {
     }
   }
   
+  // The accounts behind the Google calendars, one row per Internet Accounts
+  // entry. EKSource carries no email of its own, so the address is read off
+  // the primary calendar, which Google titles with the account address.
+  func fetchGoogleAccounts() async throws -> [CalendarAccount] {
+    try await requestAccess()
+    return eventStore.sources
+      .filter { isGoogleSource($0) }
+      .map { source in
+        // Writable calendars only: a subscribed read-only calendar is titled
+        // with its *owner's* address, which would name the account after
+        // someone else.
+        let titles = [source.title]
+          + source.calendars(for: .event)
+              .filter(\.allowsContentModifications)
+              .map(\.title)
+        return CalendarAccount(
+          id: source.sourceIdentifier,
+          title: source.title,
+          email: titles.first(where: Self.looksLikeEmail)
+        )
+      }
+  }
+
+  // Deliberately loose: this only decides whether we can hand Google a
+  // login_hint, and a wrong guess costs one extra tap in the account picker.
+  private static func looksLikeEmail(_ s: String) -> Bool {
+    guard let at = s.firstIndex(of: "@"), s.firstIndex(of: " ") == nil else { return false }
+    return at != s.startIndex && s[s.index(after: at)...].contains(".")
+  }
+
   func refreshData() {
     eventStore.refreshSourcesIfNecessary()
   }
@@ -176,7 +206,7 @@ class AppleCalendarService: CalendarService {
     // Google-account event with a connected account: write the RSVP straight
     // through. Every failure below falls through to the deep-link handoff, so
     // the button never dead-ends.
-    if event.isOnGoogleAccount, await GoogleAuth.shared.isConnected {
+    if event.isOnGoogleAccount, await GoogleAuth.shared.canRespond(as: event.currentUserEmail) {
       do {
         try await GoogleCalendarAPI.setResponseStatus(for: event, to: status)
         debugLog("RSVP -> Google API ok")

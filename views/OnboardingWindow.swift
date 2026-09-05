@@ -22,13 +22,13 @@ struct OnboardingWindow: View {
   @Environment(EventsViewModel.self) private var eventsVM
   @Environment(GoogleAuth.self) private var auth
 
-  // Derived, not navigated: granting access advances the window on its own,
-  // and connecting an account advances it again. Someone whose calendars are
-  // all iCloud skips the Google step entirely rather than being pitched a
-  // service they don't use.
+  // Derived, not navigated: granting access advances the window on its own.
+  // The Google step comes after permissions for a reason — until EventKit is
+  // readable we can't see which accounts are on the Mac, and the offer would
+  // be a blind one. Someone whose calendars are all iCloud skips it entirely.
   private var step: OnboardingStep {
     if !permVM.hasPermissions() { return .permissions }
-    if auth.isConnected || eventsVM.hasGoogleCalendars { return .google }
+    if auth.isConnected || !eventsVM.googleAccounts.isEmpty { return .google }
     return .done
   }
 
@@ -179,6 +179,7 @@ private struct PermissionsStep: View {
 
 private struct GoogleConnectStep: View {
   @Environment(GoogleAuth.self) private var auth
+  @Environment(EventsViewModel.self) private var eventsVM
   @Environment(SettingsViewModel.self) private var settings
   @Environment(\.dismiss) private var dismiss
   @State private var copied = false
@@ -189,11 +190,18 @@ private struct GoogleConnectStep: View {
         symbol: "checkmark.circle",
         title: "Respond to Google invites",
         detail: "Accept, Maybe and Decline go straight to Google. "
-              + "Without this, responding opens Google Calendar in your browser."
+              + "Connect each account you want to answer invites for — "
+              + "the rest keep opening Google Calendar in your browser."
       )
 
+      SettingsSection("Google accounts on this Mac") {
+        GoogleAccountRows(accounts: eventsVM.googleAccounts) { account in
+          Task { await auth.start(for: account, openBrowser: true) }
+        }
+      }
+      .padding(.horizontal, 24)
+
       status
-        .frame(minHeight: 38)
         .padding(.horizontal, 24)
 
       actions
@@ -207,20 +215,13 @@ private struct GoogleConnectStep: View {
     case .idle:
       EmptyView()
     case .awaitingCallback:
-      HStack(spacing: 8) {
-        ProgressView().controlSize(.small)
-        Text(copied ? "Link copied — paste it into your browser" : "Waiting for Google…")
-          .font(.system(size: 12))
-          .foregroundStyle(.secondary)
-      }
+      Text(copied ? "Link copied — paste it into your browser" : "Waiting for Google…")
+        .font(.system(size: 12))
+        .foregroundStyle(.secondary)
     case .exchanging:
       HStack(spacing: 8) {
         ProgressView().controlSize(.small)
         Text("Finishing up…").font(.system(size: 12)).foregroundStyle(.secondary)
-      }
-    case .connected(let email):
-      SettingsSection("Connected account") {
-        StatusRow(label: email, value: "Connected", tint: .green)
       }
     case .failed(let message):
       Text(message)
@@ -228,19 +229,13 @@ private struct GoogleConnectStep: View {
         .foregroundStyle(.red)
         .multilineTextAlignment(.center)
         .fixedSize(horizontal: false, vertical: true)
-        .padding(.horizontal, 36)
+        .padding(.horizontal, 12)
     }
   }
 
   @ViewBuilder
   private var actions: some View {
-    switch auth.phase {
-    case .connected:
-      Button("Done") { finish() }
-        .keyboardShortcut(.defaultAction)
-    case .exchanging:
-      Button("Cancel") { auth.cancel(); dismiss() }
-    case .awaitingCallback:
+    if case .awaitingCallback = auth.phase {
       HStack(spacing: 10) {
         Button("Cancel") { auth.cancel() }
         // The default browser may be signed into the wrong Google profile;
@@ -249,21 +244,12 @@ private struct GoogleConnectStep: View {
         Button("Open in Browser") { reopenBrowser() }
           .keyboardShortcut(.defaultAction)
       }
-    default:
-      HStack(spacing: 10) {
-        Button("Not now") { finish() }
-        Button("Copy Link") { Task { await auth.start(openBrowser: false); copyLink() } }
-        Button(isRetry ? "Try Again" : "Connect Google") {
-          Task { await auth.start(openBrowser: true) }
-        }
+    } else {
+      // Never a dead end: connecting no accounts is a valid answer, and
+      // Settings is the way back for anyone who changes their mind.
+      Button(eventsVM.hasUnconnectedGoogleAccounts ? "Not now" : "Done") { finish() }
         .keyboardShortcut(.defaultAction)
-      }
     }
-  }
-
-  private var isRetry: Bool {
-    if case .failed = auth.phase { return true }
-    return false
   }
 
   // Declining is permanent: a menu bar app that re-asks every launch is worse
