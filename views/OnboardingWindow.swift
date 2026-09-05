@@ -204,11 +204,11 @@ private struct GoogleConnectStep: View {
         symbol: "checkmark.circle",
         title: "Respond to Google invites",
         detail: "Accept, Maybe and Decline go straight to Google. "
-              + "Connect each account you want to answer invites for — "
+              + "Turn on each account you want to answer invites for — "
               + "the rest keep opening Google Calendar in your browser."
       )
 
-      SettingsSection("Google accounts on this Mac") {
+      SettingsSection("Accounts on this Mac") {
         GoogleAccountRows(accounts: eventsVM.googleAccounts) { email in
           Task { await auth.start(for: email, openBrowser: true) }
         }
