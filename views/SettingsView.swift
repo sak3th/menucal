@@ -51,31 +51,19 @@ struct SettingsView: View {
             }
           }
 
-          // MARK: Google Account
+          // MARK: Google Accounts
           // Hidden when no Google calendar is present: MenuCal reads Google
           // events through Apple Calendar, so there is genuinely nothing to
           // connect until one is added there.
-          if auth.connectedEmail != nil || eventsVM.hasGoogleCalendars {
-            SettingsSection("Google Account") {
-              if let email = auth.connectedEmail {
-                HStack(spacing: 8) {
-                  Text(email)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                  Spacer(minLength: 0)
-                  Button("Disconnect") { auth.disconnect() }
-                    .font(.system(size: 12))
-                    .buttonStyle(.borderless)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-              } else {
-                SettingsChoiceRow(label: "Connect Google Calendar", isSelected: false) {
-                  openWindow(id: OnboardingStep.windowID)
-                  NSApp.activate(ignoringOtherApps: true)
-                }
+          if !eventsVM.googleAccounts.isEmpty || auth.isConnected {
+            SettingsSection("Google Accounts") {
+              GoogleAccountRows(accounts: eventsVM.googleAccounts) { account in
+                // The flow has to run somewhere that survives the browser
+                // taking focus, which this popover does not — so open the
+                // setup window and start it there.
+                openWindow(id: OnboardingStep.windowID)
+                NSApp.activate(ignoringOtherApps: true)
+                Task { await auth.start(for: account, openBrowser: true) }
               }
             }
           }

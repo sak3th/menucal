@@ -19,9 +19,7 @@ struct AppView: View {
   // Google offer — and only for people who actually have a Google account.
   private var needsOnboarding: Bool {
     if !permVM.hasPermissions() { return true }
-    return !settings.didSeeGoogleOnboarding
-        && eventsVM.hasGoogleCalendars
-        && !auth.isConnected
+    return !settings.didSeeGoogleOnboarding && eventsVM.hasUnconnectedGoogleAccounts
   }
 
   var body: some View {
@@ -35,7 +33,7 @@ struct AppView: View {
     // A fallback for a setup window closed before finishing. The first-run
     // presentation happens at launch, from the menu bar label.
     .onAppear { presentOnboardingIfNeeded() }
-    .onChange(of: eventsVM.hasGoogleCalendars) { presentOnboardingIfNeeded() }
+    .onChange(of: eventsVM.googleAccounts) { presentOnboardingIfNeeded() }
   }
 
   // Both conditions clear themselves once handled — granting access, and

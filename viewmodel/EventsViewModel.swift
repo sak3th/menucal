@@ -18,6 +18,9 @@ class EventsViewModel {
   }
 
   var calendars: [CalendarInfo] = []
+  /// The Google accounts EventKit knows about — sign-in is offered per
+  /// account, so this is what the setup window and Settings list.
+  var googleAccounts: [CalendarAccount] = []
   var isRefreshing: Bool = false
   // Bumped whenever underlying data may have changed; day views re-fetch on it.
   var refreshTick: Int = 0
@@ -95,15 +98,17 @@ class EventsViewModel {
     do {
       let fetched = try await calendarService.fetchCalendars()
       calendars = fetched
+      googleAccounts = try await calendarService.fetchGoogleAccounts()
     } catch {
       print("Error fetching calendars: \(error)")
     }
   }
-  
-  /// Gates the Google onboarding step — there's nothing to offer someone
-  /// whose calendars are all iCloud or local.
-  var hasGoogleCalendars: Bool {
-    calendars.contains { $0.isGoogle }
+
+  /// Gates the Google setup step. Someone whose calendars are all iCloud has
+  /// nothing to connect, and someone who has connected every account is done.
+  @MainActor
+  var hasUnconnectedGoogleAccounts: Bool {
+    googleAccounts.contains { !GoogleAuth.shared.isConnected($0) }
   }
 
   func toggleCalendarVisibility(id: String) {
@@ -134,7 +139,7 @@ class EventsViewModel {
     // it. Everything else hands off to another app, where the user still has
     // to respond — claiming it here would flash the new status and revert it a
     // moment later, on every RSVP, for anyone without Google connected.
-    let willWrite = event.isOnGoogleAccount && GoogleAuth.shared.isConnected
+    let willWrite = event.isOnGoogleAccount && GoogleAuth.shared.canRespond(as: event.currentUserEmail)
     if willWrite {
       RSVPOverrides.shared.set(status, for: event)
       refreshTick &+= 1

@@ -103,9 +103,12 @@ There is also a `Window` scene (`OnboardingWindow`, id `"onboarding"`) for setup
   `fetchCalendars()`, `respondToEvent(event:status:) -> RespondOutcome`, `refreshData()`
 - `ReminderService` protocol — `fetchReminders()`
 - `AppleCalendarService` / `AppleReminderService` — EventKit implementations
-- `GoogleAuth` — OAuth for the Google Calendar API (`@Observable`, `@MainActor`, singleton)
+- `GoogleAuth` — OAuth for the Google Calendar API (`@Observable`, `@MainActor`, singleton).
+  **Multi-account**: `accounts` maps address → the EventKit source id it was
+  connected for, and one refresh token per address lives in the keychain.
 - `GoogleCalendarAPI` — the RSVP write
-- `Keychain` — generic-password wrapper; holds only the Google refresh token
+- `Keychain` — generic-password wrapper; holds one Google refresh token per
+  connected address (account name = the address)
 - `GoogleCalendarDeepLink` — builds/opens Google Calendar URLs (fallback path)
 
 Reminders are fetched by the service layer but **nothing in the UI reads them yet**.
@@ -121,8 +124,11 @@ as a *readable* property on the attendee entity. Don't go looking again.
 
 So `AppleCalendarService.respondToEvent` branches:
 
-1. **Google-account event with an account connected** → written through
-   `GoogleCalendarAPI.setResponseStatus`. Returns `.written`.
+1. **Google-account event whose account is connected** → written through
+   `GoogleCalendarAPI.setResponseStatus`. Returns `.written`. Which grant is
+   used is decided by `GoogleAuth.canRespond(as:)` / `validAccessToken(for:)`
+   from `event.currentUserEmail` — an invite can list an *alias*, so a single
+   connected account answers for anything that doesn't match exactly.
 2. **Everything else** → deep-link handoff to Google Calendar or Calendar.app.
    Returns `.handedOff`.
 
@@ -195,8 +201,17 @@ steps hand off to another app — System Settings for permissions,
 the browser for Google — and `MenuBarExtra(.window)` dismisses the instant another app
 becomes active, taking any progress or error state with it.
 
-- Steps are **derived, not navigated**: no permissions → `.permissions`; connected or
-  has Google calendars → `.google`; otherwise → `.done`.
+- Steps are **derived, not navigated**: no permissions → `.permissions`; any Google
+  account in EventKit (or already connected) → `.google`; otherwise → `.done`.
+- **The Google step comes after permissions for a reason.** Until EventKit is
+  readable we can't see which accounts are on the Mac, so the offer would be a
+  blind one. `AppleCalendarService.fetchGoogleAccounts()` enumerates the Google
+  `EKSource`s and reads each account's address off its *writable* calendars —
+  a subscribed read-only calendar is titled with its owner's address. The step
+  then offers **one Connect per account**: a grant covers one address, so a
+  single button could only ever fix one of them. The address is passed as
+  `login_hint`; the grant is filed under whatever address the returned
+  `id_token` names, not the hint, since the browser may be on another profile.
 - Presented at launch from the **menu bar label**'s `onAppear`
   (`MenuBarLabel` in `MenuCalApp.swift`). It cannot live in `AppView.onAppear` —
   that's the popover's content and doesn't exist until the icon is clicked.
