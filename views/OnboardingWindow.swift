@@ -27,7 +27,11 @@ struct OnboardingWindow: View {
   // readable we can't see which accounts are on the Mac, and the offer would
   // be a blind one. Someone whose calendars are all iCloud skips it entirely.
   private var step: OnboardingStep {
-    if !permVM.hasPermissions() { return .permissions }
+    // Hold on the permissions step until the account list has actually been
+    // read. "No Google accounts" and "haven't looked yet" are the same value,
+    // and advancing on the second flashes the wrong ending before correcting
+    // itself a frame later.
+    guard permVM.hasPermissions(), eventsVM.hasFetchedCalendars else { return .permissions }
     if auth.isConnected || !eventsVM.googleAccounts.isEmpty { return .google }
     return .done
   }
@@ -43,6 +47,13 @@ struct OnboardingWindow: View {
     .frame(width: 440)
     .fixedSize(horizontal: false, vertical: true)
     .animation(.smooth(duration: 0.3), value: step)
+    // Nothing else fetches the account list while setup is on screen: the
+    // handlers that refetch after a grant hang off AppView, which is the
+    // popover's content and doesn't exist until the icon is clicked.
+    .task { await eventsVM.fetchCalendars() }
+    .onChange(of: permVM.hasCalendarPermission) { _, granted in
+      if granted { Task { await eventsVM.fetchCalendars() } }
+    }
     .onDisappear {
       // Closing the window with the red button skips the Cancel path, which
       // would leave the loopback listener bound and let a stale browser tab
