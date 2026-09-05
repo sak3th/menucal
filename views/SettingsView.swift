@@ -10,6 +10,9 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
   @Environment(SettingsViewModel.self) private var settings
   @Environment(AppViewModel.self) private var appVM
+  @Environment(GoogleAuth.self) private var auth
+  @Environment(EventsViewModel.self) private var eventsVM
+  @Environment(\.openWindow) private var openWindow
   var maxContentHeight: CGFloat
 
   @State private var contentHeight: CGFloat = 0
@@ -45,6 +48,35 @@ struct SettingsView: View {
               }
               .padding(.horizontal, 12)
               .padding(.vertical, 8)
+            }
+          }
+
+          // MARK: Google Account
+          // Hidden when no Google calendar is present: MenuCal reads Google
+          // events through Apple Calendar, so there is genuinely nothing to
+          // connect until one is added there.
+          if auth.connectedEmail != nil || eventsVM.hasGoogleCalendars {
+            SettingsSection("Google Account") {
+              if let email = auth.connectedEmail {
+                HStack(spacing: 8) {
+                  Text(email)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                  Spacer(minLength: 0)
+                  Button("Disconnect") { auth.disconnect() }
+                    .font(.system(size: 12))
+                    .buttonStyle(.borderless)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+              } else {
+                SettingsChoiceRow(label: "Connect Google Calendar", isSelected: false) {
+                  openWindow(id: OnboardingStep.windowID)
+                  NSApp.activate(ignoringOtherApps: true)
+                }
+              }
             }
           }
 

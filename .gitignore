@@ -3,6 +3,7 @@
 xcuserdata/
 *.xccheckout
 *.xcscmblueprint
+Secrets.xcconfig
 
 # Build products
 build/
@@ -35,3 +36,6 @@ playground.xcworkspace
 ._*
 .Spotlight-V100
 .Trashes
+
+# Private, machine-local instructions
+CLAUDE.local.md

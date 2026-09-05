@@ -86,6 +86,12 @@ class SettingsViewModel {
     didSet { UserDefaults.standard.set(resetToTodayOnReopen, forKey: "resetToTodayOnReopen") }
   }
 
+  // Set by connecting or skipping, so the Google step is offered once and then
+  // only ever reachable from Settings.
+  var didSeeGoogleOnboarding: Bool {
+    didSet { UserDefaults.standard.set(didSeeGoogleOnboarding, forKey: "didSeeGoogleOnboarding") }
+  }
+
   // Backed by the system (login items), not UserDefaults.
   var launchAtLogin: Bool {
     didSet {
@@ -114,6 +120,7 @@ class SettingsViewModel {
     windowSize = WindowSize(rawValue: defaults.string(forKey: "windowSize") ?? "") ?? .medium
     timelineLayout = TimelineLayout(rawValue: defaults.string(forKey: "timelineLayout") ?? "") ?? .nested
     resetToTodayOnReopen = defaults.object(forKey: "resetToTodayOnReopen") as? Bool ?? false
+    didSeeGoogleOnboarding = defaults.object(forKey: "didSeeGoogleOnboarding") as? Bool ?? false
     launchAtLogin = (SMAppService.mainApp.status == .enabled)
   }
 }

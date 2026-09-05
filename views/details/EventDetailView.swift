@@ -35,8 +35,6 @@ struct EventDetailView: View {
       ParticipantsView(event: event)
       
       NotesView(event: event)
-      
-      ParticipationView(event: event)
     }
     
     

@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import SwiftUI
 
@@ -26,8 +27,9 @@ struct Event: Identifiable {
   let organizer: Participant?
   let attendees: [Participant]
 
-  // Participation status
-  let participationStatus: ParticipationStatus
+  // Participation status. var so a pending RSVP can be layered on before
+  // EventKit has synced it; see RSVPOverrides.
+  var participationStatus: ParticipationStatus
 
   // Calendar metadata
   let calendarTitle: String
@@ -137,7 +139,7 @@ struct Event: Identifiable {
 
   // EventKit appends "/RID=<timestamp>" to the iCalUID of detached
   // occurrences — strip it to get the series UID.
-  private var normalizedUID: String? {
+  var normalizedUID: String? {
     guard let uid = externalIdentifier else { return nil }
     if let ridRange = uid.range(of: "/RID=") {
       return String(uid[..<ridRange.lowerBound])
@@ -208,7 +210,7 @@ struct Participant: Identifiable {
 }
 
 // Participation status for the current user
-enum ParticipationStatus: String, CaseIterable {
+enum ParticipationStatus: String, CaseIterable, Codable {
   case unknown = "Unknown"
   case pending = "Pending"
   case accepted = "Accepted"
@@ -225,13 +227,16 @@ enum ParticipationStatus: String, CaseIterable {
     }
   }
 
+  // AppKit's system colours rather than SwiftUI's fixed ones: these resolve
+  // per appearance — the dark variants are deliberately less saturated — and
+  // follow the Increase Contrast setting.
   var color: Color {
     switch self {
-    case .accepted: return .green
-    case .declined: return .red
-    case .tentative: return .orange
-    case .pending: return .gray
-    case .unknown: return .gray
+    case .accepted: return Color(nsColor: .systemGreen)
+    case .declined: return Color(nsColor: .systemRed)
+    case .tentative: return Color(nsColor: .systemOrange)
+    case .pending: return Color(nsColor: .systemGray)
+    case .unknown: return Color(nsColor: .systemGray)
     }
   }
 }

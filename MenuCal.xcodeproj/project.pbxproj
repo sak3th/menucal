@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		RO0000022ED39A1200867C1D /* RSVPOverrides.swift in Sources */ = {isa = PBXBuildFile; fileRef = RO0000012ED39A1200867C1D /* RSVPOverrides.swift */; };
+		GP0000022ED39A1200867C1D /* GoogleCalendarAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = GP0000012ED39A1200867C1D /* GoogleCalendarAPI.swift */; };
+		OW0000022ED39A1200867C1D /* OnboardingWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = OW0000012ED39A1200867C1D /* OnboardingWindow.swift */; };
+		KC0000022ED39A1200867C1D /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = KC0000012ED39A1200867C1D /* Keychain.swift */; };
+		GA0000022ED39A1200867C1D /* GoogleAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = GA0000012ED39A1200867C1D /* GoogleAuth.swift */; };
 		07121EF32ED49D2C00644F2A /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07121EE82ED49D2B00644F2A /* PermissionsView.swift */; };
 		07121EF42ED49D2C00644F2A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 07121EEB2ED49D2B00644F2A /* Assets.xcassets */; };
 		07121EF52ED49D2C00644F2A /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 07121EEC2ED49D2B00644F2A /* Info.plist */; };
@@ -54,6 +59,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		RO0000012ED39A1200867C1D /* RSVPOverrides.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RSVPOverrides.swift; sourceTree = "<group>"; };
+		GP0000012ED39A1200867C1D /* GoogleCalendarAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleCalendarAPI.swift; sourceTree = "<group>"; };
+		SX0000012ED39A1200867C1D /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		OW0000012ED39A1200867C1D /* OnboardingWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingWindow.swift; sourceTree = "<group>"; };
+		KC0000012ED39A1200867C1D /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
+		GA0000012ED39A1200867C1D /* GoogleAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAuth.swift; sourceTree = "<group>"; };
 		07121EE82ED49D2B00644F2A /* PermissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsView.swift; sourceTree = "<group>"; };
 		07121EEB2ED49D2B00644F2A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		07121EEC2ED49D2B00644F2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -124,6 +135,9 @@
 		07121EF92ED49D5F00644F2A /* services */ = {
 			isa = PBXGroup;
 			children = (
+				GP0000012ED39A1200867C1D /* GoogleCalendarAPI.swift */,
+				KC0000012ED39A1200867C1D /* Keychain.swift */,
+				GA0000012ED39A1200867C1D /* GoogleAuth.swift */,
 				074875752ED39A1600867C1D /* CalendarService.swift */,
 				074875732ED39A1400867C1D /* AppleReminderService.swift */,
 				074875712ED39A1200867C1D /* AppleCalendarService.swift */,
@@ -137,6 +151,7 @@
 		07121EFA2ED49D9100644F2A /* viewmodel */ = {
 			isa = PBXGroup;
 			children = (
+				RO0000012ED39A1200867C1D /* RSVPOverrides.swift */,
 				07ED3E9F2EF5B59B00F684AA /* AppViewModel.swift */,
 				07ED3EA32EF5C71500F684AA /* PermissionsViewModel.swift */,
 				07ED3EA52EF5C7AA00F684AA /* EventsViewModel.swift */,
@@ -148,6 +163,7 @@
 		07121EFB2ED49D9F00644F2A /* views */ = {
 			isa = PBXGroup;
 			children = (
+				OW0000012ED39A1200867C1D /* OnboardingWindow.swift */,
 				07C35A392F0EA95A00677E94 /* timeline */,
 				0798AFA62F08FCDD00FF9225 /* events */,
 				0760C5C92F08096500A189AC /* details */,
@@ -297,8 +313,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				07121EF42ED49D2C00644F2A /* Assets.xcassets in Resources */,
-				07121EF52ED49D2C00644F2A /* Info.plist in Resources */,
-			);
+					);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
@@ -308,6 +323,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				RO0000022ED39A1200867C1D /* RSVPOverrides.swift in Sources */,
+				GP0000022ED39A1200867C1D /* GoogleCalendarAPI.swift in Sources */,
+				OW0000022ED39A1200867C1D /* OnboardingWindow.swift in Sources */,
+				KC0000022ED39A1200867C1D /* Keychain.swift in Sources */,
+				GA0000022ED39A1200867C1D /* GoogleAuth.swift in Sources */,
 				07C35A3B2F0EA9A400677E94 /* DayTimelineView.swift in Sources */,
 				074875742ED39A1400867C1D /* AppleReminderService.swift in Sources */,
 				07EED56A2EF5330A00538628 /* TopToolbar.swift in Sources */,
@@ -482,6 +502,7 @@
 		};
 		074875462ED395AC00867C1D /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = SX0000012ED39A1200867C1D /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -490,8 +511,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
 				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
@@ -503,6 +524,7 @@
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "App needs access to Calendar to display events";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -526,6 +548,7 @@
 		};
 		074875472ED395AC00867C1D /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = SX0000012ED39A1200867C1D /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -534,8 +557,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
-				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
 				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
@@ -547,6 +570,7 @@
 				ENABLE_RESOURCE_ACCESS_USB = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "App needs access to Calendar to display events";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

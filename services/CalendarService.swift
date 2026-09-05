@@ -1,11 +1,22 @@
 import Foundation
 import SwiftUI
 
+// Whether an RSVP was actually recorded, or merely handed off to another app
+// for the user to finish. The UI can only show an optimistic status for the
+// former.
+enum RespondOutcome {
+    case written
+    case handedOff
+}
+
 struct CalendarInfo: Identifiable, Hashable {
     let id: String
     let title: String
     let color: Color
     let sourceTitle: String
+    /// Whether this calendar lives on a Google account — the only kind whose
+    /// RSVPs MenuCal can write directly.
+    let isGoogle: Bool
 }
 
 /// Defines a standard interface for fetching calendar events from any service (Apple, Google, etc.).
@@ -27,5 +38,8 @@ protocol CalendarService {
     func refreshData()
 
     /// Responds to an event invitation.
-    func respondToEvent(event: Event, status: ParticipationStatus) async throws
+    /// - Returns: `.written` if the response actually reached the server,
+    ///   `.handedOff` if the user was sent elsewhere to complete it.
+    @discardableResult
+    func respondToEvent(event: Event, status: ParticipationStatus) async throws -> RespondOutcome
 }

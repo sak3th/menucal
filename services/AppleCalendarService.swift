@@ -154,7 +154,8 @@ class AppleCalendarService: CalendarService {
         id: ekCalendar.calendarIdentifier,
         title: ekCalendar.title,
         color: Color(ekCalendar.cgColor),
-        sourceTitle: ekCalendar.source.title
+        sourceTitle: ekCalendar.source.title,
+        isGoogle: isGoogleSource(ekCalendar.source)
       )
     }
   }
@@ -163,25 +164,39 @@ class AppleCalendarService: CalendarService {
     eventStore.refreshSourcesIfNecessary()
   }
   
-  func respondToEvent(event: Event, status: ParticipationStatus) async throws {
-    // Public EventKit API can't set participation status (read-only), so we
-    // hand off to the user's preferred calendar target (Settings).
+  func respondToEvent(event: Event, status: ParticipationStatus) async throws -> RespondOutcome {
+    // Public EventKit API can't set participation status (read-only), so
+    // anything we can't write through Google is handed off to the user's
+    // preferred calendar target (Settings).
     let target = SettingsViewModel.shared.addEventAction
     debugLog("RSVP target=\(target.rawValue) title=\(event.title) uid=\(event.externalIdentifier ?? "nil") " +
              "googleAccount=\(event.isOnGoogleAccount) selfEmail=\(event.currentUserEmail ?? "nil") " +
              "recurring=\(event.isRecurring) detached=\(event.isDetached)")
 
+    // Google-account event with a connected account: write the RSVP straight
+    // through. Every failure below falls through to the deep-link handoff, so
+    // the button never dead-ends.
+    if event.isOnGoogleAccount, await GoogleAuth.shared.isConnected {
+      do {
+        try await GoogleCalendarAPI.setResponseStatus(for: event, to: status)
+        debugLog("RSVP -> Google API ok")
+        return .written
+      } catch {
+        debugLog("RSVP -> Google API failed (\(error.localizedDescription)); falling back")
+      }
+    }
+
     // Apple Calendar preference: always hand off to Calendar.app.
     if target == .appleCalendar {
       openInAppleCalendar(event)
-      return
+      return .handedOff
     }
 
     // Google event with a derivable link → open per preference (browser/web app).
     if event.isGoogleEvent, let url = GoogleCalendarDeepLink.eventURL(for: event) {
       debugLog("RSVP -> event deeplink \(url.absoluteString)")
       GoogleCalendarDeepLink.openEvent(url)
-      return
+      return .handedOff
     }
 
     // Google-account event without a derivable id (foreign iCalUID) → open
@@ -189,11 +204,12 @@ class AppleCalendarService: CalendarService {
     if event.isOnGoogleAccount, let url = GoogleCalendarDeepLink.dayURL(for: event.startTime) {
       debugLog("RSVP -> day deeplink \(url.absoluteString)")
       GoogleCalendarDeepLink.openEvent(url)
-      return
+      return .handedOff
     }
 
     // Non-Google event (can't open in Google Calendar) → Calendar.app.
     openInAppleCalendar(event)
+    return .handedOff
   }
 
   private func openInAppleCalendar(_ event: Event) {

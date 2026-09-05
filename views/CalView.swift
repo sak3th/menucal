@@ -68,15 +68,27 @@ struct CalView: View {
 
       if let event = appVM.selectedEvent {
         ZStack(alignment: .topTrailing) {
-          ScrollView {
-            EventDetailView(event: event)
-              .padding()
+          VStack(spacing: 0) {
+            ScrollView {
+              EventDetailView(event: event)
+                .padding()
+            }
+            .scrollIndicators(.hidden)
+            .frame(maxHeight: .infinity)
+            .onTapGesture {
+              appVM.selectedEvent = nil
+            }
+
+            // Pinned below the scroll view: on an event with long notes or a
+            // large guest list the response control would otherwise sit past
+            // the fold, which is where it's least likely to be found.
+            if !event.attendees.isEmpty {
+              ParticipationView(event: event)
+                .padding(.horizontal)
+                .padding(.bottom, 12)
+            }
           }
-          .scrollIndicators(.hidden)
           .background(.background)
-          .onTapGesture {
-            appVM.selectedEvent = nil
-          }
         }
         .frame(width: ViewConstants.appWidth, height: appVM.appHeight)
         .transition(.opacity)

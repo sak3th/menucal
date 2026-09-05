@@ -100,6 +100,12 @@ class EventsViewModel {
     }
   }
   
+  /// Gates the Google onboarding step — there's nothing to offer someone
+  /// whose calendars are all iCloud or local.
+  var hasGoogleCalendars: Bool {
+    calendars.contains { $0.isGoogle }
+  }
+
   func toggleCalendarVisibility(id: String) {
     if hiddenCalendarIDs.contains(id) {
       hiddenCalendarIDs.remove(id)
@@ -108,13 +114,54 @@ class EventsViewModel {
     }
   }
 
-  func respondToEvent(event: Event, status: ParticipationStatus) async {
-    do {
-      try await calendarService.respondToEvent(event: event, status: status)
-      await refreshAll()
-    } catch {
-      print("Failed to respond to event: \(error)")
+  /// Pending response first, then whatever EventKit last reported for that
+  /// occurrence. The event's own value comes last: the detail view holds a
+  /// snapshot taken when it was opened, so it goes stale as soon as anything
+  /// changes underneath it.
+  func displayStatus(for event: Event) -> ParticipationStatus {
+    RSVPOverrides.shared.status(for: event)
+      ?? RSVPOverrides.shared.confirmedStatus(for: event)
+      ?? event.participationStatus
+  }
+
+  /// Records the response and redraws immediately; the write to Google runs
+  /// behind it. Nothing in the UI waits on the network, so there's no in-flight
+  /// state to show — the response either stands or is quietly rolled back.
+  @MainActor
+  func respondToEvent(event: Event, status: ParticipationStatus) {
+    let previous = RSVPOverrides.shared.status(for: event)
+    // Only show the answer straight away when we're actually going to write
+    // it. Everything else hands off to another app, where the user still has
+    // to respond — claiming it here would flash the new status and revert it a
+    // moment later, on every RSVP, for anyone without Google connected.
+    let willWrite = event.isOnGoogleAccount && GoogleAuth.shared.isConnected
+    if willWrite {
+      RSVPOverrides.shared.set(status, for: event)
+      refreshTick &+= 1
     }
+
+    Task { @MainActor in
+      do {
+        let outcome = try await calendarService.respondToEvent(event: event, status: status)
+        // A hand-off means the user still has to respond in the other app, so
+        // don't leave a response showing that they never made.
+        if outcome != .written, willWrite { rollBack(to: previous, for: event, ifStill: status) }
+        await refreshAll()
+      } catch {
+        if willWrite { rollBack(to: previous, for: event, ifStill: status) }
+        print("Failed to respond to event: \(error)")
+      }
+    }
+  }
+
+  /// Only undoes our own write. Tapping through several responses leaves
+  /// requests in flight together, and a late failure must not clobber a newer
+  /// answer the user has since given.
+  @MainActor
+  private func rollBack(to previous: ParticipationStatus?, for event: Event, ifStill status: ParticipationStatus) {
+    guard RSVPOverrides.shared.status(for: event) == status else { return }
+    RSVPOverrides.shared.set(previous, for: event)
+    refreshTick &+= 1
   }
 }
 
@@ -128,7 +175,8 @@ class DayEventsViewModel {
   @MainActor
   func fetchEvents(for date: Date, hiddenCalendarIDs: Set<String> = []) async {
     do {
-      let fetchedEvents = try await calendarService.fetchEvents(for: date, hiddenCalendarIDs: hiddenCalendarIDs)
+      let fetchedEvents = RSVPOverrides.shared.apply(
+        to: try await calendarService.fetchEvents(for: date, hiddenCalendarIDs: hiddenCalendarIDs))
       self.allDayEvents = fetchedEvents.filter { $0.isAllDay }
       self.events = fetchedEvents.filter { !$0.isAllDay }.sorted { $0.startTime < $1.startTime }
     } catch {

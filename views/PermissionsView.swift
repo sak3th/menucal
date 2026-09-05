@@ -1,54 +1,28 @@
+import AppKit
 import SwiftUI
 
 struct PermissionsView: View {
-    @Environment(PermissionsViewModel.self) private var permissionsVM
+  @Environment(\.openWindow) private var openWindow
 
-    var body: some View {
-      ContentUnavailableView {
-        Label("Calendar & Reminder Access", systemImage: "calendar.badge.lock")
-      } description: {
-        VStack(spacing: 12) {
-          Text("MenuCal needs access to your calendars and reminders to display your events.")
-            .multilineTextAlignment(.center)
+  var body: some View {
+    VStack(spacing: 12) {
+      Text("MenuCal needs access to your calendar.")
+        .font(.system(size: 13))
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
 
-          VStack(alignment: .leading, spacing: 4) {
-            Label(
-              "Calendar",
-              systemImage: permissionsVM.hasCalendarPermission ? "checkmark.circle.fill" : "circle"
-            )
-            Label(
-              "Reminders",
-              systemImage: permissionsVM.hasReminderPermission ? "checkmark.circle.fill" : "circle"
-            )
-          }
-          .font(.callout)
-        }
-      } actions: {
-        if permissionsVM.isRequestingPermissions {
-          ProgressView()
-            .controlSize(.small)
-        } else if permissionsVM.hasUngrantedRequestable {
-          Button("Grant Access") {
-            Task { await permissionsVM.requestPermissions() }
-          }
-          .glassEffect()
-        }
-
-        if permissionsVM.allDenied {
-          VStack(spacing: 8) {
-            Text("Permissions were denied. Please enable them in System Settings.")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-              .multilineTextAlignment(.center)
-            Button("Open System Settings") {
-              permissionsVM.openSystemSettings()
-            }
-            .glassEffect()
-          }
-        }
+      // Granting happens in the setup window: the request can send the user to
+      // System Settings, and this popover closes the moment another app
+      // becomes active, which would strand them mid-flow.
+      Button("Continue Setup") {
+        openWindow(id: OnboardingStep.windowID)
+        NSApp.activate(ignoringOtherApps: true)
       }
-      .padding(.vertical, 32)
+      .glassEffect()
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .padding(24)
+  }
 }
 
 #Preview {
