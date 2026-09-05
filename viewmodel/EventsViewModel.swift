@@ -21,9 +21,11 @@ class EventsViewModel {
   /// The Google accounts EventKit knows about — sign-in is offered per
   /// account, so this is what the setup window and Settings list.
   var googleAccounts: [CalendarAccount] = []
-  /// Whether the lists above have actually been read once. An empty
-  /// `googleAccounts` otherwise can't be told apart from "haven't looked yet",
-  /// and setup would act on the difference.
+  /// Whether a read has been *attempted*. An empty `googleAccounts` otherwise
+  /// can't be told apart from "haven't looked yet", and setup would act on the
+  /// difference. Set even when the read fails: setup holds on the permissions
+  /// step until this flips, and a step that never advances tells someone who
+  /// just granted access that they declined it.
   private(set) var hasFetchedCalendars = false
   var isRefreshing: Bool = false
   // Bumped whenever underlying data may have changed; day views re-fetch on it.
@@ -99,11 +101,11 @@ class EventsViewModel {
   }
   
   func fetchCalendars() async {
+    defer { hasFetchedCalendars = true }
     do {
       let fetched = try await calendarService.fetchCalendars()
       calendars = fetched
       googleAccounts = try await calendarService.fetchGoogleAccounts()
-      hasFetchedCalendars = true
     } catch {
       print("Error fetching calendars: \(error)")
     }
